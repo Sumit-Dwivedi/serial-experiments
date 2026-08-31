@@ -1,0 +1,195 @@
+{
+  "theme": "dark",
+  "project_name": "VAULT_ZERO // Zero-Trace Ephemeral Cryptographic Space",
+  "archetype": "SWISS & HIGH-CONTRAST / RETRO-CYBER MINIMALISM",
+  "entry_surfaces": {
+    "/": "split hero layout — brand statement + cryptographic security status left, interactive client-side encrypted note creation engine with burn controls right",
+    "/v/:id": "interstitial zero-knowledge decrypt chamber — locked vault token card, optional client passphrase decryption input, and instant destruction warning reveal",
+    "/wall": "asymmetric high-density anonymous public wall — live decentralized feed with zero-metadata post composer and anti-surveillance verification badges",
+    "/how-it-works": "technical interactive security architecture ledger — Web Crypto AES-256-GCM client-side explanation, key-in-fragment proof, and zero-log guarantee breakdown"
+  },
+  "colors": {
+    "surfaces": [
+      {
+        "name": "page",
+        "kind": "solid",
+        "bg": "#090A0F",
+        "on_bg": "#F3F4F6",
+        "on_bg_muted": "#9CA3AF",
+        "roles": {
+          "link": "#38BDF8",
+          "error": "#F87171",
+          "success": "#34D399",
+          "warning": "#FBBF24"
+        }
+      },
+      {
+        "name": "panel",
+        "kind": "solid",
+        "bg": "#11141E",
+        "on_bg": "#F9FAFB",
+        "on_bg_muted": "#94A3B8",
+        "roles": {
+          "link": "#38BDF8",
+          "error": "#F87171",
+          "success": "#34D399"
+        }
+      },
+      {
+        "name": "panel_elevated",
+        "kind": "solid",
+        "bg": "#181D2B",
+        "on_bg": "#FFFFFF",
+        "on_bg_muted": "#A1A1AA",
+        "roles": {
+          "link": "#00F5FF",
+          "error": "#EF4444",
+          "success": "#10B981"
+        }
+      },
+      {
+        "name": "inverse",
+        "kind": "solid",
+        "bg": "#F8FAFC",
+        "on_bg": "#090A0F",
+        "on_bg_muted": "#475569",
+        "roles": {
+          "link": "#0284C7",
+          "error": "#DC2626",
+          "success": "#059669"
+        }
+      },
+      {
+        "name": "hero",
+        "kind": "image",
+        "contrast_against": "#08090D",
+        "guarantee": "scrim: linear-gradient(180deg, rgba(9,10,15,0.85) 0%, rgba(9,10,15,0.96) 100%)",
+        "on_bg": "#F9FAFB",
+        "on_bg_muted": "#9CA3AF",
+        "roles": {
+          "link": "#38BDF8",
+          "error": "#F87171",
+          "success": "#34D399"
+        }
+      },
+      {
+        "name": "cipher_terminal",
+        "kind": "solid",
+        "bg": "#05070B",
+        "on_bg": "#00F5FF",
+        "on_bg_muted": "#0284C7",
+        "roles": {
+          "code": "#00F5FF",
+          "success": "#34D399",
+          "danger": "#FF3B30"
+        }
+      },
+      {
+        "name": "danger_burn",
+        "kind": "solid",
+        "bg": "#2A0E13",
+        "on_bg": "#FECDD3",
+        "on_bg_muted": "#FDA4AF",
+        "roles": {
+          "action": "#FF453A"
+        }
+      }
+    ],
+    "accent": "#00F5FF",
+    "on_accent": "#000000",
+    "accent_subtle": "rgba(0, 245, 255, 0.12)",
+    "accent_burn": "#FF3B30",
+    "on_accent_burn": "#FFFFFF",
+    "border_subtle": "rgba(255, 255, 255, 0.08)",
+    "border_focus": "rgba(0, 245, 255, 0.5)"
+  },
+  "typography": {
+    "font_heading": "'Space Grotesk Variable', sans-serif",
+    "font_sans": "'DM Sans Variable', sans-serif",
+    "font_mono": "'JetBrains Mono Variable', monospace",
+    "scale_px": {
+      "display": 56,
+      "h1": 44,
+      "h2": 32,
+      "h3": 22,
+      "body": 16,
+      "caption": 14
+    },
+    "pairing_strategy": "High-impact Cyber-Editorial Sans (Space Grotesk) + Clean Geometric Body (DM Sans) + Cryptographic Monospace (JetBrains Mono)"
+  },
+  "layouts": {
+    "grid_system": "Asymmetric Bento with Technical Border Grid (MODE A & B hybrid)",
+    "container_padding": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12",
+    "header": {
+      "height": "h-16",
+      "style": "Glassmorphism with backdrop-blur-xl bg-[#090A0F]/80 border-b border-white/10 fixed top-0 left-0 right-0 z-50",
+      "navigation": [
+        { "name": "Create Secret", "path": "/", "testId": "nav-create-secret" },
+        { "name": "Anonymous Wall", "path": "/wall", "testId": "nav-anon-wall" },
+        { "name": "Zero-Knowledge Architecture", "path": "/how-it-works", "testId": "nav-how-it-works" }
+      ]
+    },
+    "note_creator_section": {
+      "type": "split-screen bento",
+      "left_col": "Security telemetry: Zero-knowledge client encryption badge, key hash preview, ephemeral countdown timer settings, burn-after-read toggles",
+      "right_col": "Raw secret editor with optional passphrase shielding, real-time client-side entropy & ciphertext preview drawer"
+    },
+    "note_viewer_section": {
+      "type": "tactile locked vault card",
+      "description": "Never triggers immediate burn on crawler access; shows 'Locked Payload Detected' card requiring manual 'Decrypt & Reveal' click or passphrase entry, followed by a dramatic self-destruct notice and instant wipe from memory."
+    },
+    "public_wall_section": {
+      "type": "masonry / asymmetric bento grid",
+      "description": "Zero-metadata public thoughts. Anonymous identity hashing (e.g. 'Ghost-7f9a'), expiring posts or permastream, tags (confessions, thoughts, leaks, whistleblows), reaction counters without IP tracking (ephemeral upvotes), and zero cookies/fingerprinting"
+    }
+  },
+  "motion": {
+    "reduced_motion": "prefers-reduced-motion respected via motion/react",
+    "effects": {
+      "terminal_typing": "Subtle cipher text reveal effect for decrypted messages",
+      "burn_animation": "Disintegration / red particle burn effect when a note is destroyed",
+      "border_glow": "Subtle cyan edge glow on active and focused inputs",
+      "page_transition": "Opacity fade with 6px upward drift (0.2s ease-out)"
+    }
+  },
+  "accessibility": {
+    "wcag_level": "WCAG AA / APCA verified",
+    "contrast_guarantee": "All text elements meet at least 4.5:1 ratio against solid and image-scrimmed backgrounds",
+    "focus_indicators": "High-contrast 2px cyan ring (ring-2 ring-[#00F5FF]/60 ring-offset-2 ring-offset-[#090A0F])",
+    "data_testids": "All interactive buttons, textareas, inputs, dropdowns, and copy triggers MUST carry role-based kebab-case testids"
+  },
+  "image_urls": {
+    "hero_cyber_abstract": {
+      "url": "https://images.unsplash.com/photo-1761599821310-da0d6356b4f3?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1OTV8MHwxfHNlYXJjaHwxfHxtYXRyaXglMjBjb2RlJTIwYWJzdHJhY3QlMjBkaWdpdGFsJTIwZGFya3xlbnwwfHx8fDE3ODgxODM5NDV8MA&ixlib=rb-4.1.0&q=85",
+      "category": "hero_background_scrim",
+      "description": "Abstract green-cyan matrix code flow with deep dark voids for cryptographic hero background overlay"
+    },
+    "security_abstract_visual": {
+      "url": "https://images.unsplash.com/photo-1786785712665-bb11ca2f0117?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1OTV8MHwxfHNlYXJjaHwyfHxtYXRyaXglMjBjb2RlJTIwYWJzdHJhY3QlMjBkaWdpdGFsJTIwZGFya3xlbnwwfHx8fDE3ODgxODM5NDV8MA&ixlib=rb-4.1.0&q=85",
+      "category": "explainer_infographic_accent",
+      "description": "Cyber long exposure digital data streams in blue and orange against pure black"
+    },
+    "anonymity_mask_accent": {
+      "url": "https://images.unsplash.com/photo-1580046939256-c377c5b099f1?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MTJ8MHwxfHNlYXJjaHwxfHxjeWJlcnB1bmslMjBkaWdpdGFsJTIwcHJpdmFjeSUyMHNlY3VyaXR5JTIwYWJzdHJhY3R8ZW58MHx8fHwxNzg4MTgzOTQ1fDA&ixlib=rb-4.1.0&q=85",
+      "category": "anonymous_wall_feature",
+      "description": "Cyberpunk digital privacy masked figure for zero-tracking concept card"
+    }
+  },
+  "cryptography_spec_for_agent": {
+    "algorithm": "AES-GCM 256-bit via Web Crypto API (crypto.subtle)",
+    "key_transport": "Decryption key embedded strictly in the URL hash fragment (#key=...), NEVER sent over HTTP to the backend",
+    "passphrase_layer": "If passphrase is provided, PBKDF2 with SHA-256 (100,000 iterations) + random salt derives an intermediate key before AES-GCM wrapping",
+    "burn_policy": "When burn_after_read is true, reading the ciphertext triggers immediate backend atomic deletion via MongoDB find_one_and_delete; subsequent accesses return 404/Destruction notice",
+    "zero_metadata": "Backend stores NO client IP, NO User-Agent, NO request headers. Only cipher_text, iv, salt (if any), expiry_at, burn_after_read, created_at."
+  },
+  "instructions_to_main_agent": [
+    "Implement client-side Web Crypto helper utility in `frontend/src/lib/crypto.ts` with AES-256-GCM encryption, decryption, key generation, and URL fragment encoding.",
+    "Build the core pages: `Home.tsx` (Encrypted Secret Creator & Generated Link Card), `ViewSecret.tsx` (Locked Interstitial, Passphrase prompt, Decrypt & Burn notice), `AnonymousWall.tsx` (Zero-tracking public feed + post modal), `HowItWorks.tsx` (Zero-knowledge architecture visualizer with interactive crypto simulator).",
+    "Add route paths in `frontend/src/App.tsx` and ensure responsive navbar in `frontend/src/components/Navbar.tsx` with links to all three main areas.",
+    "Ensure dark mode is default by editing `frontend/src/index.css` with `@import '@fontsource-variable/space-grotesk'; @import '@fontsource-variable/jetbrains-mono'; @import '@fontsource-variable/dm-sans';` and styling the root background `#090A0F`.",
+    "In backend (`backend/server.py` and `backend/routers/`): build endpoints `/api/secrets` (POST to store ciphertext, GET `/api/secrets/{id}` to fetch/burn), and `/api/wall` (GET public messages, POST new anonymous message with optional expiry).",
+    "Guarantee that all secret links generated look like `http://localhost:3000/v/<id>#key=<base64Key>` so the key never hits the server.",
+    "Provide high fidelity UI widgets: Burn-countdown visualizer, Clipboard 1-click copy with feedback toast via Sonner, QR code modal for mobile secret sharing, Encrypted Payload Hex viewer toggle, and Client Entropy visualizer bar.",
+    "Add extensive `data-testid` attributes to all inputs, buttons, copy actions, and secret displays."
+  ]
+}
