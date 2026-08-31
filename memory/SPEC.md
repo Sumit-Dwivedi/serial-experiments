@@ -3,7 +3,7 @@
 Zero-knowledge encrypted note sharing + anonymous public wall. No accounts, no login, no PIN.
 
 ## Pages
-- `/` — create secret: textarea with drag-and-drop file dropping, up to 3 attachments (≤2 MB each), expiry select (1h/24h/7d), optional passphrase, burn-after-read checkbox → generates `/v/<id>#key=<b64>` link + live expiry countdown + QR dialog + private receipt link `/r/<token>`.
+- `/` — create secret: textarea with drag-and-drop file dropping and clipboard image paste (auto-named `screenshot-<timestamp>.png`), up to 3 attachments (≤2 MB each), expiry select (1h/24h/7d), optional passphrase, burn-after-read checkbox → generates `/v/<id>#key=<b64>` link + live expiry countdown + QR dialog + private receipt link `/r/<token>`.
 - `/v/:id` — locked payload card → "Decrypt & reveal" → plaintext, decrypted file downloads, image previews, burn notice.
 - `/r/:token` — sender-only read receipt: Opened / Not opened yet + timestamps, polls every 10s.
 - `/wall` — anonymous feed: composer (body + tag) + posts with ghost tag, echo counter and anonymous threaded replies (each reply gets its own fresh ghost tag).

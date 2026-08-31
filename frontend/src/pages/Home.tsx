@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import type { ClipboardEvent } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -69,7 +70,7 @@ export default function Home() {
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const addFiles = (picked: FileList | null) => {
+  const addFiles = (picked: FileList | File[] | null) => {
     if (!picked) return;
     const next = [...files];
     for (const f of Array.from(picked)) {
@@ -85,6 +86,22 @@ export default function Home() {
     }
     setFiles(next);
     if (fileRef.current) fileRef.current.value = "";
+  };
+
+  /** Pasting a screenshot attaches it instead of dropping it on the floor. */
+  const handlePaste = (e: ClipboardEvent) => {
+    const images = Array.from(e.clipboardData.files).filter((f) => f.type.startsWith("image/"));
+    if (images.length === 0) return;
+    e.preventDefault();
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+    const named = images.map((f, i) => {
+      const ext = f.type.split("/")[1] || "png";
+      return new File([f], `screenshot-${stamp}${images.length > 1 ? `-${i + 1}` : ""}.${ext}`, {
+        type: f.type,
+      });
+    });
+    addFiles(named);
+    toast.success(named.length > 1 ? `${named.length} images attached.` : "Screenshot attached.");
   };
 
   const create = useMutation({
@@ -221,7 +238,8 @@ export default function Home() {
               data-testid="secret-text-input"
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Type or paste anything — or drop files right here. Nothing leaves this tab unencrypted…"
+              onPaste={handlePaste}
+              placeholder="Type, paste text or a screenshot — or drop files right here. Nothing leaves this tab unencrypted…"
               className="min-h-40 resize-y border-white/10 bg-[#05070B] font-mono text-sm text-slate-200 focus-visible:ring-[#00F5FF]/50"
             />
             {dragging && (
@@ -242,7 +260,8 @@ export default function Home() {
           {/* attachments */}
           <div className="mt-5">
             <Label className="flex items-center gap-2 text-slate-300">
-              <Paperclip className="size-3.5 text-[#00F5FF]" /> Attachments (max {MAX_FILES} × 2 MB)
+              <Paperclip className="size-3.5 text-[#00F5FF]" /> Attachments (max {MAX_FILES} × 2 MB
+              · paste or drop welcome)
             </Label>
             <input
               ref={fileRef}
