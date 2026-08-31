@@ -2,20 +2,32 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { motion } from "motion/react";
-import { Flame, Lock, ShieldAlert, Unlock } from "lucide-react";
+import { Download, Flame, Lock, Paperclip, ShieldAlert, Unlock } from "lucide-react";
 
 import PageShell from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { apiGet, apiPost, ApiError } from "@/lib/api";
-import { decryptText, readFragmentKey } from "@/lib/crypto";
+import { importReadKey, openBytes, openText, readFragmentKey } from "@/lib/crypto";
 import type { SecretMeta, SecretPayload } from "@/lib/types";
+
+interface RevealedFile {
+  id: string;
+  name: string;
+  type: string;
+  url: string;
+  size: number;
+}
+
+const prettySize = (n: number) =>
+  n < 1024 ? `${n} B` : n < 1024 * 1024 ? `${(n / 1024).toFixed(0)} KB` : `${(n / 1048576).toFixed(1)} MB`;
 
 export default function ViewSecret() {
   const { id = "" } = useParams();
   const [passphrase, setPassphrase] = useState("");
   const [plain, setPlain] = useState<string | null>(null);
+  const [revealed, setRevealed] = useState<RevealedFile[]>([]);
   const [burned, setBurned] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
 
@@ -29,17 +41,35 @@ export default function ViewSecret() {
   const open = useMutation({
     mutationFn: async () => {
       const payload = await apiPost<SecretPayload>(`/secrets/${id}/open`);
-      const text = await decryptText({
-        cipherText: payload.cipher_text,
-        iv: payload.iv,
+      const key = await importReadKey({
         salt: payload.salt,
         fragmentKey: readFragmentKey(),
         passphrase: payload.has_passphrase ? passphrase : undefined,
       });
-      return { text, burned: payload.burned };
+      const text = await openText(key, payload.cipher_text, payload.iv);
+      const files: RevealedFile[] = [];
+      for (const a of payload.attachments) {
+        const metaJson = JSON.parse(await openText(key, a.cipher_name, a.name_iv)) as {
+          name: string;
+          type: string;
+        };
+        const bytes = await openBytes(key, a.cipher_data, a.data_iv);
+        const blob = new Blob([bytes as unknown as BlobPart], {
+          type: metaJson.type || "application/octet-stream",
+        });
+        files.push({
+          id: a.id,
+          name: metaJson.name,
+          type: metaJson.type,
+          url: URL.createObjectURL(blob),
+          size: a.size,
+        });
+      }
+      return { text, burned: payload.burned, files };
     },
     onSuccess: (r) => {
       setPlain(r.text);
+      setRevealed(r.files);
       setBurned(r.burned);
       setFailure(null);
     },
@@ -100,6 +130,13 @@ export default function ViewSecret() {
                   {meta.data?.burn_after_read
                     ? "Opening this destroys it permanently."
                     : "Readable until it expires."}
+                  {meta.data && meta.data.attachment_count > 0 && (
+                    <span data-testid="attachment-count-hint">
+                      {" "}
+                      · {meta.data.attachment_count} encrypted file
+                      {meta.data.attachment_count > 1 ? "s" : ""} attached
+                    </span>
+                  )}
                 </p>
               </div>
             </div>
@@ -154,16 +191,65 @@ export default function ViewSecret() {
               >
                 <Flame className="size-4 text-[#FF3B30]" />
                 <p className="text-sm text-rose-100">
-                  Destroyed. This link is now dead — copy the text before you leave.
+                  Destroyed. This link is now dead — save what you need before you leave.
                 </p>
               </div>
             )}
-            <pre
-              className="border border-[#00F5FF]/25 bg-[#05070B] p-6 font-mono text-sm leading-relaxed whitespace-pre-wrap text-[#C8FDFF]"
-              data-testid="decrypted-secret-text"
-            >
-              {plain}
-            </pre>
+            {plain.length > 0 && (
+              <pre
+                className="border border-[#00F5FF]/25 bg-[#05070B] p-6 font-mono text-sm leading-relaxed whitespace-pre-wrap text-[#C8FDFF]"
+                data-testid="decrypted-secret-text"
+              >
+                {plain}
+              </pre>
+            )}
+
+            {revealed.length > 0 && (
+              <div className="mt-5" data-testid="decrypted-attachments">
+                <p className="flex items-center gap-2 font-mono text-[11px] tracking-[0.2em] text-slate-400">
+                  <Paperclip className="size-3.5 text-[#00F5FF]" /> DECRYPTED FILES
+                </p>
+                <ul className="mt-3 space-y-2">
+                  {revealed.map((f) => (
+                    <li
+                      key={f.id}
+                      className="flex items-center justify-between gap-3 border border-white/10 bg-[#11141E] px-4 py-3"
+                    >
+                      <span className="min-w-0">
+                        <span className="block truncate font-mono text-xs text-slate-200">
+                          {f.name}
+                        </span>
+                        <span className="font-mono text-[11px] text-slate-600">
+                          {prettySize(f.size)}
+                        </span>
+                      </span>
+                      <a
+                        href={f.url}
+                        download={f.name}
+                        data-testid={`download-attachment-${f.id}`}
+                        className="flex shrink-0 items-center gap-2 border border-[#00F5FF]/40 px-3 py-1.5 font-mono text-[11px] text-[#00F5FF] transition-colors duration-200 hover:bg-[#00F5FF]/10"
+                      >
+                        <Download className="size-3.5" /> Download
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+                {revealed.some((f) => f.type.startsWith("image/")) && (
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2" data-testid="image-previews">
+                    {revealed
+                      .filter((f) => f.type.startsWith("image/"))
+                      .map((f) => (
+                        <img
+                          key={`img-${f.id}`}
+                          src={f.url}
+                          alt={f.name}
+                          className="w-full border border-white/10"
+                        />
+                      ))}
+                  </div>
+                )}
+              </div>
+            )}
           </motion.div>
         )}
       </div>

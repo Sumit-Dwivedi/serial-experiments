@@ -7,7 +7,10 @@ const dec = new TextDecoder();
 export function toB64(buf: ArrayBuffer | Uint8Array): string {
   const bytes = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
   let s = "";
-  for (const b of bytes) s += String.fromCharCode(b);
+  const CH = 0x8000;
+  for (let i = 0; i < bytes.length; i += CH) {
+    s += String.fromCharCode(...bytes.subarray(i, i + CH));
+  }
   return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
@@ -38,76 +41,75 @@ async function deriveFromPassphrase(passphrase: string, salt: Uint8Array): Promi
   );
 }
 
-export interface EncryptedBundle {
-  cipherText: string;
-  iv: string;
+export interface SecretKeyMaterial {
+  key: CryptoKey;
   salt: string | null;
   /** base64 raw AES key — belongs only in the URL fragment. Null when passphrase-derived. */
   fragmentKey: string | null;
 }
 
-export async function encryptText(
-  plain: string,
-  passphrase?: string,
-): Promise<EncryptedBundle> {
-  const iv = randomBytes(12);
-  let key: CryptoKey;
-  let salt: Uint8Array | null = null;
-  let fragmentKey: string | null = null;
-
+/** One key per secret: the note text and every attachment are sealed under it. */
+export async function buildKey(passphrase?: string): Promise<SecretKeyMaterial> {
   if (passphrase && passphrase.length > 0) {
-    salt = randomBytes(16);
-    key = await deriveFromPassphrase(passphrase, salt);
-  } else {
-    key = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, [
-      "encrypt",
-      "decrypt",
-    ]);
-    fragmentKey = toB64(await crypto.subtle.exportKey("raw", key));
+    const salt = randomBytes(16);
+    return { key: await deriveFromPassphrase(passphrase, salt), salt: toB64(salt), fragmentKey: null };
   }
+  const key = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, [
+    "encrypt",
+    "decrypt",
+  ]);
+  return { key, salt: null, fragmentKey: toB64(await crypto.subtle.exportKey("raw", key)) };
+}
 
+export interface Sealed {
+  cipher: string;
+  iv: string;
+}
+
+export async function sealBytes(key: CryptoKey, data: Uint8Array): Promise<Sealed> {
+  const iv = randomBytes(12);
   const cipher = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv: iv as unknown as BufferSource },
     key,
-    enc.encode(plain),
+    data as unknown as BufferSource,
   );
-
-  return {
-    cipherText: toB64(cipher),
-    iv: toB64(iv),
-    salt: salt ? toB64(salt) : null,
-    fragmentKey,
-  };
+  return { cipher: toB64(cipher), iv: toB64(iv) };
 }
 
-export async function decryptText(args: {
-  cipherText: string;
-  iv: string;
+export const sealText = (key: CryptoKey, text: string) => sealBytes(key, enc.encode(text));
+
+export async function openBytes(key: CryptoKey, cipher: string, iv: string): Promise<Uint8Array> {
+  const plain = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: fromB64(iv) as unknown as BufferSource },
+    key,
+    fromB64(cipher) as unknown as BufferSource,
+  );
+  return new Uint8Array(plain);
+}
+
+export async function openText(key: CryptoKey, cipher: string, iv: string): Promise<string> {
+  return dec.decode(await openBytes(key, cipher, iv));
+}
+
+/** Rebuilds the reading key from the URL fragment or the passphrase + stored salt. */
+export async function importReadKey(args: {
   salt: string | null;
   fragmentKey?: string | null;
   passphrase?: string;
-}): Promise<string> {
-  let key: CryptoKey;
+}): Promise<CryptoKey> {
   if (args.salt && args.passphrase !== undefined) {
-    key = await deriveFromPassphrase(args.passphrase, fromB64(args.salt));
-  } else if (args.fragmentKey) {
-    key = await crypto.subtle.importKey(
+    return deriveFromPassphrase(args.passphrase, fromB64(args.salt));
+  }
+  if (args.fragmentKey) {
+    return crypto.subtle.importKey(
       "raw",
       fromB64(args.fragmentKey) as unknown as BufferSource,
       { name: "AES-GCM", length: 256 },
       false,
       ["decrypt"],
     );
-  } else {
-    throw new Error("No decryption key available.");
   }
-
-  const plain = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: fromB64(args.iv) as unknown as BufferSource },
-    key,
-    fromB64(args.cipherText) as unknown as BufferSource,
-  );
-  return dec.decode(plain);
+  throw new Error("No decryption key available.");
 }
 
 /** Reads `#key=...` from the current URL without ever putting it in a request. */

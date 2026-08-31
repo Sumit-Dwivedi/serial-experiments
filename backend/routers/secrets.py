@@ -1,14 +1,17 @@
 """Zero-metadata secret storage. We never read request headers, IPs or user agents."""
+import secrets as pysecrets
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException
 
 from lib.db import db
 from models.vault import (
+    Attachment,
     SecretCreate,
     SecretCreated,
     SecretMeta,
     SecretPayload,
+    SecretReceipt,
     new_secret_doc,
 )
 
@@ -33,8 +36,21 @@ async def _load(secret_id: str) -> dict:
 async def create_secret(data: SecretCreate):
     doc = new_secret_doc(data)
     await db.secrets.insert_one(dict(doc))
+    token = pysecrets.token_urlsafe(16)
+    await db.receipts.insert_one(
+        {
+            "token": token,
+            "secret_id": doc["id"],
+            "created_at": doc["created_at"],
+            "opened_at": None,
+            "expires_at": doc["expires_at"],
+        }
+    )
     return SecretCreated(
-        id=doc["id"], expires_at=doc["expires_at"], burn_after_read=doc["burn_after_read"]
+        id=doc["id"],
+        expires_at=doc["expires_at"],
+        burn_after_read=doc["burn_after_read"],
+        receipt_token=token,
     )
 
 
@@ -47,6 +63,7 @@ async def secret_meta(secret_id: str):
         has_passphrase=doc["has_passphrase"],
         burn_after_read=doc["burn_after_read"],
         expires_at=_aware(doc["expires_at"]),
+        attachment_count=len(doc.get("attachments", [])),
     )
 
 
@@ -60,6 +77,13 @@ async def open_secret(secret_id: str):
         if not removed:
             raise HTTPException(status_code=404, detail="This secret was already destroyed.")
         burned = True
+
+    # Read receipt: timestamp only. Nothing identifying the reader is recorded.
+    await db.receipts.update_one(
+        {"secret_id": secret_id, "opened_at": None},
+        {"$set": {"opened_at": datetime.now(timezone.utc)}},
+    )
+
     return SecretPayload(
         id=doc["id"],
         cipher_text=doc["cipher_text"],
@@ -67,5 +91,21 @@ async def open_secret(secret_id: str):
         salt=doc.get("salt"),
         has_passphrase=doc["has_passphrase"],
         burned=burned,
+        expires_at=_aware(doc["expires_at"]),
+        attachments=[Attachment(**a) for a in doc.get("attachments", [])],
+    )
+
+
+@router.get("/receipts/{token}", response_model=SecretReceipt)
+async def read_receipt(token: str):
+    """Sender-only status. Says WHEN it was opened, never by whom."""
+    doc = await db.receipts.find_one({"token": token})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Unknown receipt.")
+    opened = doc.get("opened_at")
+    return SecretReceipt(
+        opened=opened is not None,
+        opened_at=_aware(opened) if opened else None,
+        created_at=_aware(doc["created_at"]),
         expires_at=_aware(doc["expires_at"]),
     )

@@ -1,14 +1,37 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { Copy, Flame, KeyRound, Lock, ShieldCheck, Timer, Eye, EyeOff } from "lucide-react";
+import {
+  Copy,
+  Flame,
+  KeyRound,
+  Lock,
+  Paperclip,
+  QrCode,
+  ShieldCheck,
+  Timer,
+  Trash2,
+  Eye,
+  EyeOff,
+  Receipt,
+} from "lucide-react";
 
 import PageShell from "@/components/PageShell";
+import QrCanvas from "@/components/QrCanvas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -17,8 +40,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { apiPost } from "@/lib/api";
-import { encryptText } from "@/lib/crypto";
-import type { SecretCreated } from "@/lib/types";
+import { buildKey, sealBytes, sealText } from "@/lib/crypto";
+import type { Attachment, SecretCreated } from "@/lib/types";
 
 const EXPIRY_LABELS: Record<string, string> = {
   "1": "1 hour",
@@ -26,47 +49,91 @@ const EXPIRY_LABELS: Record<string, string> = {
   "168": "7 days",
 };
 
+const MAX_FILE_BYTES = 2 * 1024 * 1024;
+const MAX_FILES = 3;
+
+const prettySize = (n: number) =>
+  n < 1024 ? `${n} B` : n < 1024 * 1024 ? `${(n / 1024).toFixed(0)} KB` : `${(n / 1048576).toFixed(1)} MB`;
+
 export default function Home() {
   const [text, setText] = useState("");
   const [passphrase, setPassphrase] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [expiry, setExpiry] = useState("24");
   const [burn, setBurn] = useState(true);
+  const [files, setFiles] = useState<File[]>([]);
   const [link, setLink] = useState<string | null>(null);
-  const [cipherPreview, setCipherPreview] = useState<string | null>(null);
+  const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const addFiles = (picked: FileList | null) => {
+    if (!picked) return;
+    const next = [...files];
+    for (const f of Array.from(picked)) {
+      if (f.size > MAX_FILE_BYTES) {
+        toast.error(`${f.name} is over the 2 MB limit.`);
+        continue;
+      }
+      if (next.length >= MAX_FILES) {
+        toast.error(`Up to ${MAX_FILES} files per secret.`);
+        break;
+      }
+      next.push(f);
+    }
+    setFiles(next);
+    if (fileRef.current) fileRef.current.value = "";
+  };
 
   const create = useMutation({
     mutationFn: async () => {
-      const bundle = await encryptText(text, passphrase || undefined);
+      const material = await buildKey(passphrase || undefined);
+      const sealedText = await sealText(material.key, text);
+
+      const attachments: Omit<Attachment, "id">[] = [];
+      for (const f of files) {
+        const bytes = new Uint8Array(await f.arrayBuffer());
+        const data = await sealBytes(material.key, bytes);
+        const name = await sealText(material.key, JSON.stringify({ name: f.name, type: f.type }));
+        attachments.push({
+          cipher_name: name.cipher,
+          name_iv: name.iv,
+          cipher_data: data.cipher,
+          data_iv: data.iv,
+          size: f.size,
+        });
+      }
+
       const created = await apiPost<SecretCreated>("/secrets", {
-        cipher_text: bundle.cipherText,
-        iv: bundle.iv,
-        salt: bundle.salt,
+        cipher_text: sealedText.cipher,
+        iv: sealedText.iv,
+        salt: material.salt,
         has_passphrase: Boolean(passphrase),
         burn_after_read: burn,
         expires_in_hours: Number(expiry),
+        attachments,
       });
-      const frag = bundle.fragmentKey ? `#key=${bundle.fragmentKey}` : "";
+
+      const frag = material.fragmentKey ? `#key=${material.fragmentKey}` : "";
       return {
         url: `${window.location.origin}/v/${created.id}${frag}`,
-        preview: bundle.cipherText.slice(0, 220),
+        receipt: `${window.location.origin}/r/${created.receipt_token}`,
       };
     },
     onSuccess: (r) => {
       setLink(r.url);
-      setCipherPreview(r.preview);
+      setReceiptUrl(r.receipt);
       setText("");
       setPassphrase("");
+      setFiles([]);
       toast.success("Encrypted locally. Only ciphertext was uploaded.");
     },
     onError: () => toast.error("Could not store the encrypted payload. Try again."),
   });
 
-  const copy = async () => {
-    if (!link) return;
+  const copy = async (value: string, label: string) => {
     try {
-      await navigator.clipboard.writeText(link);
-      toast.success("Secret link copied.");
+      await navigator.clipboard.writeText(value);
+      toast.success(`${label} copied.`);
     } catch {
       toast.message("Copy manually — clipboard is blocked here.");
     }
@@ -75,7 +142,6 @@ export default function Home() {
   return (
     <PageShell>
       <div className="grid gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-14">
-        {/* Left: brand + telemetry */}
         <section className="lg:pt-6">
           <p className="font-mono text-[11px] tracking-[0.32em] text-[#00F5FF]">
             ZERO-KNOWLEDGE · AES-256-GCM
@@ -89,8 +155,8 @@ export default function Home() {
             Leave <span className="text-[#00F5FF]">no trace</span> behind.
           </h1>
           <p className="mt-5 max-w-md text-[15px] leading-relaxed text-slate-400">
-            Your text is encrypted inside this browser tab before anything is sent. The
-            decryption key rides in the link fragment — a part of the URL browsers never
+            Your text and files are encrypted inside this browser tab before anything is sent.
+            The decryption key rides in the link fragment — a part of the URL browsers never
             transmit. We store ciphertext and nothing else: no account, no IP, no user agent.
           </p>
 
@@ -98,6 +164,7 @@ export default function Home() {
             {[
               { icon: ShieldCheck, label: "Encrypted in-browser", value: "crypto.subtle" },
               { icon: KeyRound, label: "Key transport", value: "URL #fragment only" },
+              { icon: Paperclip, label: "Attachments", value: "sealed under same key" },
               { icon: Flame, label: "Destruction", value: "atomic on first read" },
             ].map((row) => (
               <div
@@ -116,7 +183,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Right: creator */}
         <section
           className="relative border border-white/10 bg-[#11141E] p-5 shadow-[0_0_60px_-25px_rgba(0,245,255,0.4)] sm:p-7"
           data-testid="secret-creator-panel"
@@ -135,11 +201,53 @@ export default function Home() {
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Type or paste anything. It never leaves this tab unencrypted…"
-            className="mt-2 min-h-44 resize-y border-white/10 bg-[#05070B] font-mono text-sm text-slate-200 focus-visible:ring-[#00F5FF]/50"
+            className="mt-2 min-h-40 resize-y border-white/10 bg-[#05070B] font-mono text-sm text-slate-200 focus-visible:ring-[#00F5FF]/50"
           />
           <p className="mt-2 font-mono text-[11px] text-slate-600" data-testid="char-counter">
             {text.length} chars · entropy source: crypto.getRandomValues
           </p>
+
+          {/* attachments */}
+          <div className="mt-5">
+            <Label className="flex items-center gap-2 text-slate-300">
+              <Paperclip className="size-3.5 text-[#00F5FF]" /> Attachments (max {MAX_FILES} × 2 MB)
+            </Label>
+            <input
+              ref={fileRef}
+              type="file"
+              multiple
+              data-testid="attachment-file-input"
+              onChange={(e) => addFiles(e.target.files)}
+              className="mt-2 block w-full cursor-pointer border border-white/10 bg-[#05070B] p-2 font-mono text-xs text-slate-400 file:mr-3 file:border-0 file:bg-[#00F5FF]/15 file:px-3 file:py-1.5 file:font-mono file:text-[11px] file:text-[#00F5FF]"
+            />
+            {files.length > 0 && (
+              <ul className="mt-3 space-y-2" data-testid="attachment-list">
+                {files.map((f, i) => (
+                  <li
+                    key={`${f.name}-${i}`}
+                    data-testid={`attachment-item-${i}`}
+                    className="flex items-center justify-between gap-3 border border-white/10 bg-[#05070B] px-3 py-2"
+                  >
+                    <span className="truncate font-mono text-xs text-slate-300">{f.name}</span>
+                    <span className="flex shrink-0 items-center gap-3">
+                      <span className="font-mono text-[11px] text-slate-600">
+                        {prettySize(f.size)}
+                      </span>
+                      <button
+                        type="button"
+                        aria-label={`Remove ${f.name}`}
+                        data-testid={`attachment-remove-${i}`}
+                        onClick={() => setFiles(files.filter((_, j) => j !== i))}
+                        className="text-slate-500 transition-colors duration-200 hover:text-[#FF3B30]"
+                      >
+                        <Trash2 className="size-3.5" />
+                      </button>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
 
           <div className="mt-6 grid gap-5 sm:grid-cols-2">
             <div>
@@ -216,7 +324,7 @@ export default function Home() {
 
           <Button
             data-testid="create-secret-button"
-            disabled={!text.trim() || create.isPending}
+            disabled={(!text.trim() && files.length === 0) || create.isPending}
             onClick={() => create.mutate()}
             className="mt-6 w-full bg-[#00F5FF] font-mono text-xs tracking-[0.18em] text-black uppercase transition-transform duration-200 hover:bg-[#5CFBFF] active:scale-[0.99]"
           >
@@ -237,21 +345,68 @@ export default function Home() {
               >
                 {link}
               </p>
-              <Button
-                onClick={copy}
-                data-testid="copy-secret-link-button"
-                variant="outline"
-                className="mt-4 border-[#00F5FF]/40 font-mono text-xs text-[#00F5FF] hover:bg-[#00F5FF]/10"
-              >
-                <Copy className="mr-2 size-3.5" /> Copy link
-              </Button>
-              {cipherPreview && (
-                <p
-                  className="mt-4 font-mono text-[10px] leading-relaxed break-all text-slate-600"
-                  data-testid="ciphertext-preview"
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Button
+                  onClick={() => copy(link, "Secret link")}
+                  data-testid="copy-secret-link-button"
+                  variant="outline"
+                  className="border-[#00F5FF]/40 font-mono text-xs text-[#00F5FF] hover:bg-[#00F5FF]/10"
                 >
-                  stored payload: {cipherPreview}…
-                </p>
+                  <Copy className="mr-2 size-3.5" /> Copy link
+                </Button>
+                <Dialog>
+                  <DialogTrigger
+                    render={
+                      <Button
+                        variant="outline"
+                        data-testid="show-qr-button"
+                        className="border-white/15 font-mono text-xs text-slate-200 hover:bg-white/5"
+                      />
+                    }
+                  >
+                    <QrCode className="mr-2 size-3.5" /> Show QR
+                  </DialogTrigger>
+                  <DialogContent data-testid="qr-dialog" className="bg-[#11141E]">
+                    <DialogHeader>
+                      <DialogTitle className="font-heading">Scan to open</DialogTitle>
+                      <DialogDescription>
+                        Drawn in this tab. The link — and its key — never reached a QR service.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex justify-center py-2">
+                      <QrCanvas text={link} size={260} />
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+
+              {receiptUrl && (
+                <div className="mt-5 border-t border-white/10 pt-4" data-testid="receipt-block">
+                  <p className="flex items-center gap-2 font-mono text-[11px] tracking-[0.2em] text-slate-400">
+                    <Receipt className="size-3.5 text-[#00F5FF]" /> YOUR PRIVATE READ RECEIPT
+                  </p>
+                  <p className="mt-2 text-xs text-slate-500">
+                    Keep this for yourself. It shows only <em>when</em> the note was opened — never
+                    by whom.
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Link
+                      to={`/r/${receiptUrl.split("/r/")[1]}`}
+                      data-testid="open-receipt-link"
+                      className="border border-white/15 px-3 py-1.5 font-mono text-[11px] text-slate-200 transition-colors duration-200 hover:border-[#00F5FF]/40 hover:text-[#00F5FF]"
+                    >
+                      Open status page
+                    </Link>
+                    <button
+                      type="button"
+                      data-testid="copy-receipt-link-button"
+                      onClick={() => copy(receiptUrl, "Receipt link")}
+                      className="border border-white/15 px-3 py-1.5 font-mono text-[11px] text-slate-400 transition-colors duration-200 hover:text-white"
+                    >
+                      Copy receipt link
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           )}
