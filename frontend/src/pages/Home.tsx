@@ -19,6 +19,7 @@ import {
 
 import PageShell from "@/components/PageShell";
 import QrCanvas from "@/components/QrCanvas";
+import ExpiryCountdown from "@/components/ExpiryCountdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -63,6 +64,8 @@ export default function Home() {
   const [burn, setBurn] = useState(true);
   const [files, setFiles] = useState<File[]>([]);
   const [link, setLink] = useState<string | null>(null);
+  const [expiresAt, setExpiresAt] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -117,11 +120,13 @@ export default function Home() {
       return {
         url: `${window.location.origin}/v/${created.id}${frag}`,
         receipt: `${window.location.origin}/r/${created.receipt_token}`,
+        expiresAt: created.expires_at,
       };
     },
     onSuccess: (r) => {
       setLink(r.url);
       setReceiptUrl(r.receipt);
+      setExpiresAt(r.expiresAt);
       setText("");
       setPassphrase("");
       setFiles([]);
@@ -195,14 +200,41 @@ export default function Home() {
           <Label htmlFor="secret-text" className="text-slate-300">
             Your secret
           </Label>
-          <Textarea
-            id="secret-text"
-            data-testid="secret-text-input"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Type or paste anything. It never leaves this tab unencrypted…"
-            className="mt-2 min-h-40 resize-y border-white/10 bg-[#05070B] font-mono text-sm text-slate-200 focus-visible:ring-[#00F5FF]/50"
-          />
+          <div
+            data-testid="editor-dropzone"
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragging(true);
+            }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragging(false);
+              addFiles(e.dataTransfer.files);
+            }}
+            className={`relative mt-2 transition-colors duration-200 ${
+              dragging ? "ring-2 ring-[#00F5FF]/70" : ""
+            }`}
+          >
+            <Textarea
+              id="secret-text"
+              data-testid="secret-text-input"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Type or paste anything — or drop files right here. Nothing leaves this tab unencrypted…"
+              className="min-h-40 resize-y border-white/10 bg-[#05070B] font-mono text-sm text-slate-200 focus-visible:ring-[#00F5FF]/50"
+            />
+            {dragging && (
+              <div
+                className="pointer-events-none absolute inset-0 flex items-center justify-center bg-[#05070B]/85"
+                data-testid="dropzone-overlay"
+              >
+                <span className="flex items-center gap-2 font-mono text-xs tracking-[0.2em] text-[#00F5FF]">
+                  <Paperclip className="size-4" /> DROP TO ENCRYPT
+                </span>
+              </div>
+            )}
+          </div>
           <p className="mt-2 font-mono text-[11px] text-slate-600" data-testid="char-counter">
             {text.length} chars · entropy source: crypto.getRandomValues
           </p>
@@ -345,6 +377,11 @@ export default function Home() {
               >
                 {link}
               </p>
+              {expiresAt && (
+                <div className="mt-3">
+                  <ExpiryCountdown expiresAt={expiresAt} />
+                </div>
+              )}
               <div className="mt-4 flex flex-wrap gap-2">
                 <Button
                   onClick={() => copy(link, "Secret link")}

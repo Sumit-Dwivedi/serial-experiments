@@ -84,6 +84,17 @@ class WallPostCreate(BaseModel):
     tag: str = Field(default="thoughts", max_length=32)
 
 
+class WallReplyCreate(BaseModel):
+    body: str = Field(min_length=1, max_length=1000)
+
+
+class WallReply(BaseModel):
+    id: str
+    body: str
+    ghost: str
+    created_at: datetime
+
+
 class WallPost(BaseModel):
     id: str
     body: str
@@ -91,3 +102,4 @@ class WallPost(BaseModel):
     ghost: str
     created_at: datetime
     echoes: int = 0
+    replies: List[WallReply] = Field(default_factory=list)

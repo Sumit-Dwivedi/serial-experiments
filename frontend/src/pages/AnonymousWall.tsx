@@ -4,9 +4,9 @@ import { toast } from "sonner";
 import { Radio, Send, Ghost } from "lucide-react";
 
 import PageShell from "@/components/PageShell";
+import WallPostCard from "@/components/WallPostCard";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -45,11 +45,6 @@ export default function AnonymousWall() {
     onError: () => toast.error("Could not publish right now."),
   });
 
-  const echo = useMutation({
-    mutationFn: (id: string) => apiPost<WallPost>(`/wall/${id}/echo`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["wall"] }),
-  });
-
   const list = posts.isError ? [] : (posts.data ?? []);
 
   return (
@@ -77,7 +72,7 @@ export default function AnonymousWall() {
             <Radio className="size-3.5 text-[#00F5FF]" /> BROADCAST ANONYMOUSLY
           </div>
           <Textarea
-            data-testid="wall-post-input"
+            data-testid="wall-composer-input"
             value={body}
             onChange={(e) => setBody(e.target.value)}
             placeholder="Say the thing you cannot sign your name to…"
@@ -127,33 +122,7 @@ export default function AnonymousWall() {
             </div>
           )}
           {list.map((p, i) => (
-            <article
-              key={p.id}
-              data-testid={`wall-post-${p.id}`}
-              className={`border border-white/10 bg-[#11141E] p-5 transition-colors duration-200 hover:border-[#00F5FF]/30 ${
-                i % 3 === 1 ? "lg:ml-8" : ""
-              }`}
-            >
-              <div className="flex items-center justify-between gap-3">
-                <span className="font-mono text-[11px] tracking-wider text-[#00F5FF]">
-                  {p.ghost}
-                </span>
-                <Badge variant="outline" className="font-mono text-[10px] text-slate-400">
-                  {p.tag}
-                </Badge>
-              </div>
-              <p className="mt-3 text-[15px] leading-relaxed whitespace-pre-wrap text-slate-200">
-                {p.body}
-              </p>
-              <button
-                type="button"
-                data-testid={`wall-echo-button-${p.id}`}
-                onClick={() => echo.mutate(p.id)}
-                className="mt-4 font-mono text-[11px] tracking-wider text-slate-500 transition-colors duration-200 hover:text-[#00F5FF]"
-              >
-                ▲ ECHO {p.echoes}
-              </button>
-            </article>
+            <WallPostCard key={p.id} post={p} offset={i % 3 === 1} />
           ))}
         </section>
       </div>

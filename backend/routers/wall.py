@@ -7,7 +7,7 @@ from typing import List
 from fastapi import APIRouter, HTTPException
 
 from lib.db import db
-from models.vault import WallPost, WallPostCreate
+from models.vault import WallPost, WallPostCreate, WallReply, WallReplyCreate
 
 router = APIRouter()
 
@@ -26,6 +26,15 @@ def _to_post(doc: dict) -> WallPost:
         ghost=doc["ghost"],
         created_at=_aware(doc["created_at"]),
         echoes=doc.get("echoes", 0),
+        replies=[
+            WallReply(
+                id=r["id"],
+                body=r["body"],
+                ghost=r["ghost"],
+                created_at=_aware(r["created_at"]),
+            )
+            for r in doc.get("replies", [])
+        ],
     )
 
 
@@ -51,6 +60,23 @@ async def create_wall_post(data: WallPostCreate):
         "echoes": 0,
     }
     await db.wall_posts.insert_one(dict(doc))
+    return _to_post(doc)
+
+
+@router.post("/wall/{post_id}/replies", response_model=WallPost, status_code=201)
+async def reply_to_post(post_id: str, data: WallReplyCreate):
+    """Replies are anonymous too — a fresh ghost tag per reply, nothing linking them."""
+    reply = {
+        "id": str(uuid.uuid4()),
+        "body": data.body.strip(),
+        "ghost": f"Ghost-{pysecrets.token_hex(2)}",
+        "created_at": datetime.now(timezone.utc),
+    }
+    doc = await db.wall_posts.find_one_and_update(
+        {"id": post_id}, {"$push": {"replies": reply}}, return_document=True
+    )
+    if not doc:
+        raise HTTPException(status_code=404, detail="Post not found")
     return _to_post(doc)
 
 

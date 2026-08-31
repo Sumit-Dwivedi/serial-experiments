@@ -43,6 +43,13 @@ export interface SecretPayload {
   attachments: Attachment[];
 }
 
+export interface WallReply {
+  id: string;
+  body: string;
+  ghost: string;
+  created_at: string;
+}
+
 export interface WallPost {
   id: string;
   body: string;
@@ -50,4 +57,5 @@ export interface WallPost {
   ghost: string;
   created_at: string;
   echoes: number;
+  replies: WallReply[];
 }
