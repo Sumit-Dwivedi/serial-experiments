@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { CornerDownRight, MessageSquare, Send } from "lucide-react";
@@ -9,10 +9,26 @@ import { Textarea } from "@/components/ui/textarea";
 import { apiPost } from "@/lib/api";
 import type { WallPost } from "@/lib/types";
 
+function timeLeft(iso: string): string {
+  const ms = new Date(iso).getTime() - Date.now();
+  if (ms <= 0) return "expiring";
+  const mins = Math.floor(ms / 60000);
+  if (mins < 60) return `${mins}m left`;
+  const hrs = Math.floor(mins / 60);
+  return hrs < 24 ? `${hrs}h left` : `${Math.floor(hrs / 24)}d ${hrs % 24}h left`;
+}
+
 export default function WallPostCard({ post, offset }: { post: WallPost; offset: boolean }) {
   const qc = useQueryClient();
+  const [, forceTick] = useState(0);
   const [replying, setReplying] = useState(false);
   const [draft, setDraft] = useState("");
+
+  // Keep the countdown badge honest without refetching.
+  useEffect(() => {
+    const t = setInterval(() => forceTick((n) => n + 1), 60_000);
+    return () => clearInterval(t);
+  }, []);
 
   const echo = useMutation({
     mutationFn: () => apiPost<WallPost>(`/wall/${post.id}/echo`),
@@ -39,9 +55,17 @@ export default function WallPostCard({ post, offset }: { post: WallPost; offset:
     >
       <div className="flex items-center justify-between gap-3">
         <span className="font-mono text-[11px] tracking-wider text-[#00F5FF]">{post.ghost}</span>
-        <Badge variant="outline" className="font-mono text-[10px] text-slate-400">
-          {post.tag}
-        </Badge>
+        <span className="flex items-center gap-2">
+          <span
+            className="font-mono text-[10px] tracking-wider text-slate-500"
+            data-testid={`wall-post-countdown-${post.id}`}
+          >
+            ⏳ {timeLeft(post.expires_at)}
+          </span>
+          <Badge variant="outline" className="font-mono text-[10px] text-slate-400">
+            {post.tag}
+          </Badge>
+        </span>
       </div>
       <p className="mt-3 text-[15px] leading-relaxed whitespace-pre-wrap text-slate-200">
         {post.body}

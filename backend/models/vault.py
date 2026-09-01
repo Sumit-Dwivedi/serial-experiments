@@ -27,6 +27,7 @@ class SecretCreate(BaseModel):
     has_passphrase: bool = False
     burn_after_read: bool = True
     expires_in_hours: int = Field(default=24, ge=1, le=168)
+    max_reads: int = Field(default=1, ge=1, le=5)
     attachments: List[Attachment] = Field(default_factory=list, max_length=3)
 
 
@@ -52,6 +53,8 @@ class SecretMeta(BaseModel):
     burn_after_read: bool
     expires_at: datetime
     attachment_count: int = 0
+    max_reads: int = 1
+    reads_left: int = 1
 
 
 class SecretPayload(BaseModel):
@@ -63,6 +66,10 @@ class SecretPayload(BaseModel):
     burned: bool
     expires_at: datetime
     attachments: List[Attachment] = Field(default_factory=list)
+    # Authorizes the explicit DELETE. Held only by the client that fetched the payload.
+    burn_token: str = ""
+    reads_left: int = 0
+    auto_purge_at: Optional[datetime] = None
 
 
 def new_secret_doc(data: SecretCreate) -> dict:
@@ -73,15 +80,23 @@ def new_secret_doc(data: SecretCreate) -> dict:
         "salt": data.salt,
         "has_passphrase": data.has_passphrase,
         "burn_after_read": data.burn_after_read,
+        "max_reads": data.max_reads,
+        "reads_left": data.max_reads,
+        "claimed_at": None,
         "attachments": [a.model_dump() for a in data.attachments],
         "created_at": _now(),
         "expires_at": _now() + timedelta(hours=data.expires_in_hours),
+        # TTL anchor: starts at the natural expiry, pulled in to +5min once claimed.
+        "purge_at": _now() + timedelta(hours=data.expires_in_hours),
     }
 
 
 class WallPostCreate(BaseModel):
     body: str = Field(min_length=1, max_length=2000)
     tag: str = Field(default="thoughts", max_length=32)
+    expires_in_hours: int = Field(default=48, ge=1, le=168)
+    challenge: str = Field(min_length=1, max_length=128)
+    nonce: str = Field(min_length=1, max_length=64)
 
 
 class WallReplyCreate(BaseModel):
@@ -101,5 +116,6 @@ class WallPost(BaseModel):
     tag: str
     ghost: str
     created_at: datetime
+    expires_at: datetime
     echoes: int = 0
     replies: List[WallReply] = Field(default_factory=list)

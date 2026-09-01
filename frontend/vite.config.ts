@@ -3,6 +3,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { visualEdits } from "@emergentbase/visual-edits/vite";
+// @ts-expect-error — vite-plugin-sri ships no type declarations.
+import sri from "vite-plugin-sri";
 
 // Supervisor exports DISABLE_HOT_RELOAD=true when the platform sets ENABLE_RELOAD=false.
 const hotReloadDisabled = process.env.DISABLE_HOT_RELOAD === "true";
@@ -23,6 +25,9 @@ export default defineConfig({
     react(),
     tailwindcss(),
     ...(visualEditsDisabled ? [] : [visualEdits()]),
+    // Subresource Integrity on production script/link tags: the browser refuses any
+    // bundle whose hash doesn't match, so tampered JS can't run our crypto.
+    sri({ algorithm: "sha384" }),
   ],
   resolve: {
     alias: {

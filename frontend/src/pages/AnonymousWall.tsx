@@ -15,7 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { apiGet, apiPost } from "@/lib/api";
-import type { WallPost } from "@/lib/types";
+import { solveChallenge } from "@/lib/pow";
+import type { PowChallengeResponse, WallPost } from "@/lib/types";
 
 const TAGS: Record<string, string> = {
   thoughts: "thoughts",
@@ -24,11 +25,19 @@ const TAGS: Record<string, string> = {
   whistleblows: "whistleblows",
 };
 
+const LIFE_LABELS: Record<string, string> = {
+  "24": "vanishes in 24 hours",
+  "48": "vanishes in 48 hours",
+  "168": "vanishes in 7 days",
+};
+
 export default function AnonymousWall() {
   const qc = useQueryClient();
   const [body, setBody] = useState("");
   const [tag, setTag] = useState("thoughts");
   const [filter, setFilter] = useState("all");
+  const [life, setLife] = useState("48");
+  const [powing, setPowing] = useState(false);
 
   const posts = useQuery({
     queryKey: ["wall"],
@@ -37,13 +46,35 @@ export default function AnonymousWall() {
   });
 
   const publish = useMutation({
-    mutationFn: () => apiPost<WallPost>("/wall", { body, tag }),
+    mutationFn: async () => {
+      // Proof of work: a few seconds of CPU per post makes flooding expensive without
+      // identifying anyone.
+      setPowing(true);
+      try {
+        const challenge = await apiGet<PowChallengeResponse>("/wall/challenge");
+        const nonce = await solveChallenge(challenge);
+        return await apiPost<WallPost>("/wall", {
+          body,
+          tag,
+          expires_in_hours: Number(life),
+          challenge: challenge.challenge,
+          nonce,
+        });
+      } finally {
+        setPowing(false);
+      }
+    },
     onSuccess: () => {
       setBody("");
       qc.invalidateQueries({ queryKey: ["wall"] });
       toast.success("Posted anonymously. No identity was attached.");
     },
-    onError: () => toast.error("Could not publish right now."),
+    onError: (e) =>
+      toast.error(
+        e instanceof Error && e.message.includes("400")
+          ? "Post rejected."
+          : "Could not publish right now.",
+      ),
   });
 
   const all = posts.isError ? [] : (posts.data ?? []);
@@ -99,6 +130,21 @@ export default function AnonymousWall() {
               ))}
             </SelectContent>
           </Select>
+          <Select value={life} onValueChange={(v: string) => setLife(v)}>
+            <SelectTrigger
+              className="mt-3 w-full border-white/10 bg-[#05070B] font-mono text-xs"
+              data-testid="wall-life-select-trigger"
+            >
+              <SelectValue>{(v) => LIFE_LABELS[v as string]}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(LIFE_LABELS).map(([v, label]) => (
+                <SelectItem key={v} value={v} data-testid={`wall-life-option-${v}`}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button
             data-testid="wall-publish-button"
             disabled={!body.trim() || publish.isPending}
@@ -106,7 +152,7 @@ export default function AnonymousWall() {
             className="mt-4 w-full bg-[#00F5FF] font-mono text-xs tracking-[0.18em] text-black uppercase hover:bg-[#5CFBFF]"
           >
             <Send className="mr-2 size-3.5" />
-            {publish.isPending ? "Posting…" : "Post to the wall"}
+            {powing ? "Solving proof of work…" : publish.isPending ? "Posting…" : "Post to the wall"}
           </Button>
         </section>
 

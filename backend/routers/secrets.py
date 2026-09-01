@@ -1,8 +1,8 @@
 """Zero-metadata secret storage. We never read request headers, IPs or user agents."""
 import secrets as pysecrets
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
 from lib.db import db
 from models.vault import (
@@ -64,24 +64,46 @@ async def secret_meta(secret_id: str):
         burn_after_read=doc["burn_after_read"],
         expires_at=_aware(doc["expires_at"]),
         attachment_count=len(doc.get("attachments", [])),
+        max_reads=doc.get("max_reads", 1),
+        reads_left=doc.get("reads_left", 1),
     )
 
 
-@router.post("/secrets/{secret_id}/open", response_model=SecretPayload)
-async def open_secret(secret_id: str):
-    """Explicit user action. Burns atomically when burn_after_read is set."""
-    doc = await _load(secret_id)
-    burned = False
-    if doc["burn_after_read"]:
-        removed = await db.secrets.find_one_and_delete({"id": secret_id})
-        if not removed:
-            raise HTTPException(status_code=404, detail="This secret was already destroyed.")
-        burned = True
+CLAIM_GRACE_MINUTES = 5
 
-    # Read receipt: timestamp only. Nothing identifying the reader is recorded.
+
+@router.get("/secrets/{secret_id}", response_model=SecretPayload)
+async def claim_secret(secret_id: str):
+    """Hands over the ciphertext WITHOUT deleting it, so a refresh or a crash can't
+    destroy an unread secret. Consumes one read and returns a burn token."""
+    doc = await _load(secret_id)
+
+    reads_left = doc.get("reads_left", 1)
+    if reads_left <= 0:
+        raise HTTPException(status_code=404, detail="This secret has already been claimed.")
+
+    now = datetime.now(timezone.utc)
+    burn_token = pysecrets.token_urlsafe(24)
+    remaining = reads_left - 1
+    # Once the last read is used the secret locks: no new viewer can reach it, and the
+    # TTL index reaps it within 5 minutes even if the reader never clicks Destroy.
+    auto_purge_at = (
+        now + timedelta(minutes=CLAIM_GRACE_MINUTES) if remaining <= 0 else _aware(doc["purge_at"])
+    )
+    await db.secrets.update_one(
+        {"id": secret_id},
+        {
+            "$set": {
+                "reads_left": remaining,
+                "claimed_at": doc.get("claimed_at") or now,
+                "burn_token": burn_token,
+                "purge_at": auto_purge_at,
+            }
+        },
+    )
+
     await db.receipts.update_one(
-        {"secret_id": secret_id, "opened_at": None},
-        {"$set": {"opened_at": datetime.now(timezone.utc)}},
+        {"secret_id": secret_id, "opened_at": None}, {"$set": {"opened_at": now}}
     )
 
     return SecretPayload(
@@ -90,10 +112,26 @@ async def open_secret(secret_id: str):
         iv=doc["iv"],
         salt=doc.get("salt"),
         has_passphrase=doc["has_passphrase"],
-        burned=burned,
+        burned=False,
         expires_at=_aware(doc["expires_at"]),
         attachments=[Attachment(**a) for a in doc.get("attachments", [])],
+        burn_token=burn_token,
+        reads_left=remaining,
+        auto_purge_at=auto_purge_at,
     )
+
+
+@router.delete("/secrets/{secret_id}", status_code=200)
+async def burn_secret(secret_id: str, burn_token: str = Query(...)):
+    """Explicit, user-confirmed destruction. Only the client holding the burn token
+    from its own claim can trigger it."""
+    doc = await db.secrets.find_one({"id": secret_id})
+    if not doc:
+        return {"burned": True, "detail": "Already destroyed."}
+    if doc.get("burn_token") != burn_token:
+        raise HTTPException(status_code=403, detail="Invalid burn token.")
+    await db.secrets.find_one_and_delete({"id": secret_id, "burn_token": burn_token})
+    return {"burned": True, "detail": "Destroyed."}
 
 
 @router.get("/receipts/{token}", response_model=SecretReceipt)

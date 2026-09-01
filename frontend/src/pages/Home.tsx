@@ -63,6 +63,7 @@ export default function Home() {
   const [showPass, setShowPass] = useState(false);
   const [expiry, setExpiry] = useState("24");
   const [burn, setBurn] = useState(true);
+  const [maxReads, setMaxReads] = useState("1");
   const [files, setFiles] = useState<File[]>([]);
   const [link, setLink] = useState<string | null>(null);
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
@@ -130,6 +131,7 @@ export default function Home() {
         has_passphrase: Boolean(passphrase),
         burn_after_read: burn,
         expires_in_hours: Number(expiry),
+        max_reads: Number(maxReads),
         attachments,
       });
 
@@ -351,6 +353,27 @@ export default function Home() {
                 </button>
               </div>
             </div>
+          </div>
+
+          <div className="mt-5">
+            <Label className="flex items-center gap-2 text-slate-300">
+              <Eye className="size-3.5 text-[#00F5FF]" /> Allowed reads
+            </Label>
+            <Select value={maxReads} onValueChange={(v: string) => setMaxReads(v)}>
+              <SelectTrigger
+                className="mt-2 w-full border-white/10 bg-[#05070B] font-mono text-sm"
+                data-testid="max-reads-select-trigger"
+              >
+                <SelectValue>{(v) => `${v as string} read${v === "1" ? "" : "s"}`}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {["1", "2", "3", "4", "5"].map((n) => (
+                  <SelectItem key={n} value={n} data-testid={`max-reads-option-${n}`}>
+                    {n} read{n === "1" ? "" : "s"}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <label

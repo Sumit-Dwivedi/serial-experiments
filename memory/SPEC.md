@@ -32,3 +32,13 @@ Self-contained byte-mode QR encoder (versions 1–10, EC level M), drawn to a ca
 
 ## Auth
 None — anonymous by design. No credentials exist.
+
+## Security hardening (4 pitfall fixes)
+1. **URL key leak**: ViewSecret captures `#key=` once, stashes it in `sessionStorage` (per-tab, dies with the tab) and calls `history.replaceState` to scrub the address bar/history. sessionStorage is required — without it a refresh would strip the key and make the note undecryptable. Cleared on destroy. index.html carries `robots: noindex,nofollow` + generic OpenGraph/Twitter cards ("Encrypted Message — VAULT_ZERO"). `Referrer-Policy: no-referrer` set by middleware.
+2. **Confirmation gate**: `GET /api/secrets/{id}` claims (does NOT delete), decrements `reads_left`, sets `claimed_at` and returns a single-use `burn_token`. `DELETE /api/secrets/{id}?burn_token=` hard-deletes via `find_one_and_delete` (403 on a wrong token). `max_reads` 1–5 at creation; at 0 the secret locks (404) and `purge_at` pulls in to claimed_at + 5 min, reaped by the TTL index. Frontend shows "I've saved this — Destroy it now".
+3. **Wall abuse**: `GET /api/wall/challenge` issues a Hashcash puzzle (SHA-256 leading zero bits, DIFFICULTY=16 ≈ 3-4s avg in-browser via Web Crypto, high variance is inherent). Single-use, atomically consumed, replay → 400. `backend/lib/content_filter.py` blocklist rejects with a generic "Post rejected" (400) and logs nothing. Posts carry `expires_at` (default 48h, max 7d, poster-configurable) with a countdown badge.
+4. **Delivery trust**: `vite-plugin-sri` emits `integrity="sha384-..."` on production script/link tags. FastAPI middleware sets CSP, Referrer-Policy, X-Content-Type-Options, X-Frame-Options, HSTS, Permissions-Policy on every response.
+
+TTL indexes (created in the server.py lifespan): `secrets.purge_at`, `wall_posts.expires_at`, `receipts.expires_at`, `pow_challenges.expires_at` — all `expireAfterSeconds=0`.
+
+Note: CSP/security headers are served on backend responses; the Vite dev server serves the HTML in dev, so SRI attributes appear only in `yarn build` output.

@@ -18,15 +18,49 @@ load_dotenv(ROOT_DIR / '.env')
 from lib.db import client, db
 
 
+CSP = (
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
+    "connect-src 'self'; img-src 'self' data: blob: https://images.unsplash.com; "
+    "font-src 'self' https://fonts.gstatic.com; frame-ancestors 'none'; "
+    "base-uri 'self'; form-action 'self';"
+)
+
+SECURITY_HEADERS = {
+    "Content-Security-Policy": CSP,
+    "Referrer-Policy": "no-referrer",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+}
+
+
 # Startup runs before the yield, shutdown after it. Add your own setup/teardown here.
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # TTL indexes: Mongo reaps the documents itself, so nothing lingers if a process dies.
+    # expireAfterSeconds=0 means "delete once the field's timestamp is in the past".
+    await db.secrets.create_index("purge_at", expireAfterSeconds=0)
+    await db.wall_posts.create_index("expires_at", expireAfterSeconds=0)
+    await db.receipts.create_index("expires_at", expireAfterSeconds=0)
+    await db.pow_challenges.create_index("expires_at", expireAfterSeconds=0)
+    await db.pow_challenges.create_index("challenge", unique=True)
     yield
     client.close()
 
 
 # Create the main app without a prefix
 app = FastAPI(lifespan=lifespan)
+
+
+@app.middleware("http")
+async def security_headers(request, call_next):
+    """Hardens every response. Blocks injected third-party JS — the main threat to
+    browser-side cryptography — and keeps the key fragment out of Referer headers."""
+    response = await call_next(request)
+    for header, value in SECURITY_HEADERS.items():
+        response.headers.setdefault(header, value)
+    return response
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")

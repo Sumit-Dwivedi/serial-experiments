@@ -7,6 +7,8 @@ from typing import List
 from fastapi import APIRouter, HTTPException
 
 from lib.db import db
+from lib.content_filter import is_blocked
+from lib.pow import issue_challenge, verify_and_consume
 from models.vault import WallPost, WallPostCreate, WallReply, WallReplyCreate
 
 router = APIRouter()
@@ -25,6 +27,7 @@ def _to_post(doc: dict) -> WallPost:
         tag=doc["tag"],
         ghost=doc["ghost"],
         created_at=_aware(doc["created_at"]),
+        expires_at=_aware(doc["expires_at"]),
         echoes=doc.get("echoes", 0),
         replies=[
             WallReply(
@@ -46,8 +49,20 @@ async def list_wall():
     return [_to_post(d) for d in docs]
 
 
+@router.get("/wall/challenge")
+async def wall_challenge():
+    """Hand out a proof-of-work puzzle. Solving it costs the poster CPU, not privacy."""
+    return await issue_challenge()
+
+
 @router.post("/wall", response_model=WallPost, status_code=201)
 async def create_wall_post(data: WallPostCreate):
+    if not await verify_and_consume(data.challenge, data.nonce):
+        raise HTTPException(status_code=400, detail="Invalid or expired proof of work.")
+    if is_blocked(data.body):
+        # Generic message on purpose: neither the content nor the poster is logged.
+        raise HTTPException(status_code=400, detail="Post rejected.")
+
     tag = data.tag if data.tag in TAGS else "thoughts"
     now = datetime.now(timezone.utc)
     doc = {
@@ -56,8 +71,9 @@ async def create_wall_post(data: WallPostCreate):
         "tag": tag,
         "ghost": f"Ghost-{pysecrets.token_hex(2)}",
         "created_at": now,
-        "expires_at": now + timedelta(days=7),
+        "expires_at": now + timedelta(hours=data.expires_in_hours),
         "echoes": 0,
+        "replies": [],
     }
     await db.wall_posts.insert_one(dict(doc))
     return _to_post(doc)
@@ -66,6 +82,8 @@ async def create_wall_post(data: WallPostCreate):
 @router.post("/wall/{post_id}/replies", response_model=WallPost, status_code=201)
 async def reply_to_post(post_id: str, data: WallReplyCreate):
     """Replies are anonymous too — a fresh ghost tag per reply, nothing linking them."""
+    if is_blocked(data.body):
+        raise HTTPException(status_code=400, detail="Post rejected.")
     reply = {
         "id": str(uuid.uuid4()),
         "body": data.body.strip(),

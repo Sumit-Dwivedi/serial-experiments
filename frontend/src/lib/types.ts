@@ -30,6 +30,8 @@ export interface SecretMeta {
   burn_after_read: boolean;
   expires_at: string;
   attachment_count: number;
+  max_reads: number;
+  reads_left: number;
 }
 
 export interface SecretPayload {
@@ -41,6 +43,9 @@ export interface SecretPayload {
   burned: boolean;
   expires_at: string;
   attachments: Attachment[];
+  burn_token: string;
+  reads_left: number;
+  auto_purge_at: string | null;
 }
 
 export interface WallReply {
@@ -56,6 +61,17 @@ export interface WallPost {
   tag: string;
   ghost: string;
   created_at: string;
+  expires_at: string;
   echoes: number;
   replies: WallReply[];
+}
+
+export interface PowChallengeResponse {
+  challenge: string;
+  difficulty: number;
+}
+
+export interface BurnResult {
+  burned: boolean;
+  detail: string;
 }

@@ -1,16 +1,17 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { motion } from "motion/react";
-import { Download, Flame, Lock, Paperclip, ShieldAlert, Unlock } from "lucide-react";
+import { toast } from "sonner";
+import { Download, Flame, Lock, Paperclip, ShieldAlert, ShieldCheck, Unlock } from "lucide-react";
 
 import PageShell from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { apiGet, apiPost, ApiError } from "@/lib/api";
+import { apiGet, apiDelete, ApiError } from "@/lib/api";
 import { importReadKey, openBytes, openText, readFragmentKey } from "@/lib/crypto";
-import type { SecretMeta, SecretPayload } from "@/lib/types";
+import type { BurnResult, SecretMeta, SecretPayload } from "@/lib/types";
 
 interface RevealedFile {
   id: string;
@@ -30,6 +31,25 @@ export default function ViewSecret() {
   const [revealed, setRevealed] = useState<RevealedFile[]>([]);
   const [burned, setBurned] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
+  const [burnToken, setBurnToken] = useState<string | null>(null);
+  const [destroyed, setDestroyed] = useState(false);
+
+  // Capture the key from the fragment ONCE, then scrub it from the address bar and
+  // session history so it can't leak via screen-shares, history or a copied URL.
+  // It's held in sessionStorage (this tab only, dies with the tab) so a refresh can
+  // still decrypt — the secret survives a refresh, and so must the key.
+  const stashKey = `vz:key:${id}`;
+  const fragmentKey = useRef<string | null>(
+    readFragmentKey() ?? sessionStorage.getItem(stashKey),
+  );
+  useEffect(() => {
+    const fromHash = readFragmentKey();
+    if (fromHash) {
+      fragmentKey.current = fromHash;
+      sessionStorage.setItem(stashKey, fromHash);
+      window.history.replaceState(null, "", `/v/${id}`);
+    }
+  }, [id, stashKey]);
 
   const meta = useQuery({
     queryKey: ["secret-meta", id],
@@ -40,10 +60,12 @@ export default function ViewSecret() {
 
   const open = useMutation({
     mutationFn: async () => {
-      const payload = await apiPost<SecretPayload>(`/secrets/${id}/open`);
+      // GET claims the secret but does NOT delete it — a refresh or crash can no
+      // longer destroy an unread note.
+      const payload = await apiGet<SecretPayload>(`/secrets/${id}`);
       const key = await importReadKey({
         salt: payload.salt,
-        fragmentKey: readFragmentKey(),
+        fragmentKey: fragmentKey.current,
         passphrase: payload.has_passphrase ? passphrase : undefined,
       });
       const text = await openText(key, payload.cipher_text, payload.iv);
@@ -65,12 +87,13 @@ export default function ViewSecret() {
           size: a.size,
         });
       }
-      return { text, burned: payload.burned, files };
+      return { text, burned: payload.burned, files, burnToken: payload.burn_token };
     },
     onSuccess: (r) => {
       setPlain(r.text);
       setRevealed(r.files);
       setBurned(r.burned);
+      setBurnToken(r.burnToken);
       setFailure(null);
     },
     onError: (e) => {
@@ -84,6 +107,17 @@ export default function ViewSecret() {
         setFailure("Decryption failed — wrong passphrase or a broken link.");
       }
     },
+  });
+
+  const destroy = useMutation({
+    mutationFn: () =>
+      apiDelete<BurnResult>(`/secrets/${id}?burn_token=${encodeURIComponent(burnToken ?? "")}`),
+    onSuccess: () => {
+      setDestroyed(true);
+      sessionStorage.removeItem(stashKey);
+      toast.success("Destroyed. The ciphertext is gone from the server.");
+    },
+    onError: () => toast.error("Could not destroy it — it may already be gone."),
   });
 
   const missing = meta.isError && plain === null;
@@ -190,9 +224,7 @@ export default function ViewSecret() {
                 data-testid="burn-notice"
               >
                 <Flame className="size-4 text-[#FF3B30]" />
-                <p className="text-sm text-rose-100">
-                  Destroyed. This link is now dead — save what you need before you leave.
-                </p>
+                <p className="text-sm text-rose-100">This secret has been destroyed.</p>
               </div>
             )}
             {plain.length > 0 && (
@@ -248,6 +280,42 @@ export default function ViewSecret() {
                       ))}
                   </div>
                 )}
+              </div>
+            )}
+            {burnToken && !destroyed && (
+              <div
+                className="mt-6 border border-[#FF3B30]/30 bg-[#2A0E13] p-5"
+                data-testid="destroy-gate"
+              >
+                <p className="flex items-center gap-2 text-sm font-medium text-rose-100">
+                  <Flame className="size-4 text-[#FF3B30]" /> Still on the server
+                </p>
+                <p className="mt-2 text-xs leading-relaxed text-rose-300/80">
+                  Nothing was deleted yet, so a refresh won't lose it. Save what you need,
+                  then destroy it. If you just close this tab, it self-deletes within 5
+                  minutes anyway.
+                </p>
+                <Button
+                  data-testid="destroy-now-button"
+                  onClick={() => destroy.mutate()}
+                  disabled={destroy.isPending}
+                  className="mt-4 w-full bg-[#FF3B30] font-mono text-xs tracking-[0.18em] text-white uppercase transition-transform duration-200 hover:bg-[#FF5A50] active:scale-[0.99]"
+                >
+                  <Flame className="mr-2 size-3.5" />
+                  {destroy.isPending ? "Destroying…" : "I've saved this — Destroy it now"}
+                </Button>
+              </div>
+            )}
+
+            {destroyed && (
+              <div
+                className="mt-6 flex items-center gap-2 border border-[#34D399]/30 bg-[#0C2A20] px-4 py-3"
+                data-testid="destroyed-confirmation"
+              >
+                <ShieldCheck className="size-4 text-[#34D399]" />
+                <p className="text-sm text-emerald-100">
+                  Destroyed. The ciphertext is gone from the server for good.
+                </p>
               </div>
             )}
           </motion.div>
