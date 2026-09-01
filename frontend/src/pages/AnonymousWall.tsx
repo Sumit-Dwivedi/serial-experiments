@@ -28,6 +28,7 @@ export default function AnonymousWall() {
   const qc = useQueryClient();
   const [body, setBody] = useState("");
   const [tag, setTag] = useState("thoughts");
+  const [filter, setFilter] = useState("all");
 
   const posts = useQuery({
     queryKey: ["wall"],
@@ -45,7 +46,12 @@ export default function AnonymousWall() {
     onError: () => toast.error("Could not publish right now."),
   });
 
-  const list = posts.isError ? [] : (posts.data ?? []);
+  const all = posts.isError ? [] : (posts.data ?? []);
+  const counts = all.reduce<Record<string, number>>((acc, p) => {
+    acc[p.tag] = (acc[p.tag] ?? 0) + 1;
+    return acc;
+  }, {});
+  const list = filter === "all" ? all : all.filter((p) => p.tag === filter);
 
   return (
     <PageShell>
@@ -105,6 +111,30 @@ export default function AnonymousWall() {
         </section>
 
         <section className="space-y-4" data-testid="wall-feed">
+          <div
+            className="flex flex-wrap gap-2 border-b border-white/10 pb-4"
+            data-testid="wall-filter-bar"
+          >
+            {["all", ...Object.keys(TAGS)].map((t) => {
+              const active = filter === t;
+              const count = t === "all" ? all.length : (counts[t] ?? 0);
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  data-testid={`wall-filter-${t}`}
+                  onClick={() => setFilter(t)}
+                  className={`border px-3 py-1.5 font-mono text-[11px] tracking-wider uppercase transition-colors duration-200 ${
+                    active
+                      ? "border-[#00F5FF]/50 bg-[#00F5FF]/10 text-[#00F5FF]"
+                      : "border-white/10 text-slate-500 hover:border-white/25 hover:text-slate-200"
+                  }`}
+                >
+                  {t} <span className="text-slate-600">{count}</span>
+                </button>
+              );
+            })}
+          </div>
           {posts.isLoading && (
             <p className="font-mono text-xs text-slate-600" data-testid="wall-loading">
               Loading feed…
@@ -117,7 +147,9 @@ export default function AnonymousWall() {
             >
               <Ghost className="mx-auto size-6 text-slate-600" />
               <p className="mt-3 text-sm text-slate-500">
-                The wall is silent. Be the first ghost to speak.
+                {filter === "all"
+                  ? "The wall is silent. Be the first ghost to speak."
+                  : `No ${filter} yet. Be the first ghost to post one.`}
               </p>
             </div>
           )}
