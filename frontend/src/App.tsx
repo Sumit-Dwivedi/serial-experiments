@@ -7,6 +7,7 @@ import HowItWorks from "@/pages/HowItWorks";
 import ReceiptStatus from "@/pages/ReceiptStatus";
 import Threads from "@/pages/Threads";
 import ThreadDetail from "@/pages/ThreadDetail";
+import SharePreview from "@/pages/SharePreview";
 
 // One <Route> per page in src/pages; BrowserRouter already wraps this in main.tsx.
 export default function App() {
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="/threads/:id" element={<ThreadDetail />} />
         <Route path="/wall" element={<AnonymousWall />} />
         <Route path="/how-it-works" element={<HowItWorks />} />
+        <Route path="/share-preview" element={<SharePreview />} />
         <Route path="*" element={<Home />} />
       </Routes>
       <Toaster position="bottom-right" richColors />

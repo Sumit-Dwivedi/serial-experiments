@@ -156,3 +156,27 @@
     @apply font-sans;
     }
 }
+
+/* Cipher rain: columns are rendered at 2x height and slide down one half per loop, so the
+   seam is never visible. Tailwind v4 needs bespoke keyframes authored explicitly. */
+@keyframes cipher-fall {
+    from {
+        transform: translateY(-50%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+.animate-cipher-fall {
+    animation-name: cipher-fall;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .animate-cipher-fall {
+        animation: none;
+        transform: translateY(-25%);
+    }
+}

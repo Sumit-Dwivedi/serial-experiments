@@ -59,3 +59,7 @@ Note: CSP/security headers are served on backend responses; the Vite dev server 
 - ThreadDetail: pulsing emerald dot when open, `[SEALED]` badge when closed.
 - index.html: OG/Twitter cards + /og-card.png (1200x630).
 - Backend: `GET /api/health` → {"status":"ok"} for uptime probes. Analytics = Cloudflare Web Analytics (no code); see memory/OBSERVABILITY.md.
+
+## Cipher rain + unfurl inspector
+- `components/CipherRain.tsx`: decorative falling-hex columns fed by the live cipher preview hex; keyframes `cipher-fall` live in `src/index.css` and are disabled under prefers-reduced-motion.
+- `/share-preview` (`pages/SharePreview.tsx`): renders the app's real OG tags as Slack and Discord unfurl mockups, with a paste-a-link box proving the `#key=` fragment is stripped. Reachable from the "Preview the unfurl" button on a generated secret link card.

@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 
 import PageShell from "@/components/PageShell";
+import CipherRain from "@/components/CipherRain";
 import QrCanvas from "@/components/QrCanvas";
 import ExpiryCountdown from "@/components/ExpiryCountdown";
 import { Button } from "@/components/ui/button";
@@ -320,8 +321,11 @@ export default function Home() {
             <summary className="cursor-pointer font-mono text-[11px] tracking-wider text-slate-500 transition-colors duration-200 hover:text-[#00F5FF]">
               ▸ Cipher preview
             </summary>
+            <div className="mt-2">
+              <CipherRain hex={cipherHex} />
+            </div>
             <pre
-              className="mt-2 max-h-24 overflow-hidden border border-[#00F5FF]/10 bg-[#05070B] p-3 font-mono text-[11px] leading-relaxed break-all whitespace-pre-wrap text-[#00F5FF]/60"
+              className="mt-2 max-h-16 overflow-hidden border border-[#00F5FF]/10 bg-[#05070B] p-3 font-mono text-[11px] leading-relaxed break-all whitespace-pre-wrap text-[#00F5FF]/60"
               data-testid="cipher-preview-hex"
             >
               {cipherHex || "Start typing to see the encrypted output…"}
@@ -526,6 +530,13 @@ export default function Home() {
                     </div>
                   </DialogContent>
                 </Dialog>
+                <Link
+                  to="/share-preview"
+                  data-testid="share-preview-link"
+                  className="flex items-center border border-white/15 px-3 py-1.5 font-mono text-xs text-slate-400 transition-colors duration-200 hover:border-[#00F5FF]/40 hover:text-[#00F5FF]"
+                >
+                  Preview the unfurl
+                </Link>
               </div>
 
               {receiptUrl && (
