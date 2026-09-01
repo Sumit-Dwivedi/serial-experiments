@@ -158,7 +158,7 @@ export default function ViewSecret() {
               </span>
               <div>
                 <p className="font-mono text-xs tracking-wider text-slate-300">
-                  VAULT TOKEN {id.slice(0, 8)}
+                  PAYLOAD TOKEN {id.slice(0, 8)}
                 </p>
                 <p className="text-xs text-slate-500">
                   {meta.data?.burn_after_read
@@ -328,7 +328,7 @@ export default function ViewSecret() {
             className="text-[#00F5FF]/50 transition-colors duration-200 hover:text-[#00F5FF]"
             data-testid="viral-cta"
           >
-            VAULT_ZERO
+            SERIAL_EXPERIMENTS
           </a>{" "}
           ·{" "}
           <a

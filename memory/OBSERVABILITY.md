@@ -1,4 +1,4 @@
-# Observability — VAULT_ZERO
+# Observability — SERIAL_EXPERIMENTS
 
 No tracking code lives in the app. Analytics and uptime are entirely external, so the
 zero-identity guarantee is untouched.

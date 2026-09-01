@@ -68,13 +68,13 @@ export default function Threads() {
     if (!savedToken) return;
     const blob = new Blob(
       [
-        `VAULT_ZERO thread owner key\nthread: ${savedToken.id}\nowner_token: ${savedToken.token}\n\nKeep this to close your thread if you lose your browser session.\n`,
+        `SERIAL_EXPERIMENTS thread owner key\nthread: ${savedToken.id}\nowner_token: ${savedToken.token}\n\nKeep this to close your thread if you lose your browser session.\n`,
       ],
       { type: "text/plain" },
     );
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `vault-zero-thread-${savedToken.id.slice(0, 8)}.txt`;
+    a.download = `serial-experiments-thread-${savedToken.id.slice(0, 8)}.txt`;
     a.click();
   };
 

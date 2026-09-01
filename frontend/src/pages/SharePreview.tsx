@@ -13,10 +13,10 @@ const meta = (selector: string, fallback: string) =>
 export default function SharePreview() {
   const [url, setUrl] = useState(`${window.location.origin}/v/2f9c41ab#key=…`);
 
-  const title = meta('meta[property="og:title"]', "VAULT_ZERO");
+  const title = meta('meta[property="og:title"]', "SERIAL_EXPERIMENTS");
   const description = meta('meta[property="og:description"]', "");
   const image = meta('meta[property="og:image"]', "/og-card.png");
-  const site = meta('meta[property="og:site_name"]', "VAULT_ZERO");
+  const site = meta('meta[property="og:site_name"]', "SERIAL_EXPERIMENTS");
   const host = window.location.host;
   const shown = url.split("#")[0];
 

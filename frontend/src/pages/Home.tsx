@@ -66,7 +66,7 @@ CIPHER=$(echo -n "$SECRET" | openssl enc -aes-256-gcm \\
   -K $(echo -n "$KEY" | base64 -d | xxd -p) \\
   -iv $(echo -n "$IV" | base64 -d | xxd -p) \\
   -nosalt | base64)
-# Post to VAULT_ZERO
+# Post to SERIAL_EXPERIMENTS
 ID=$(curl -s -X POST ${APP_ORIGIN}/api/secrets \\
   -H "Content-Type: application/json" \\
   -d "{\\"cipher_text\\": \\"$CIPHER\\", \\"iv\\": \\"$IV\\"}" \\

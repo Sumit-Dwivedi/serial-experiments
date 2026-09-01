@@ -3,10 +3,10 @@ import { ShieldOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const LINKS = [
-  { name: "Create Secret", path: "/", testId: "nav-create-secret" },
-  { name: "Anonymous Wall", path: "/wall", testId: "nav-anon-wall" },
-  { name: "Threads", path: "/threads", testId: "nav-threads" },
-  { name: "Architecture", path: "/how-it-works", testId: "nav-how-it-works" },
+  { name: "Create Secret", short: "New", path: "/", testId: "nav-create-secret" },
+  { name: "Anonymous Wall", short: "Wall", path: "/wall", testId: "nav-anon-wall" },
+  { name: "Threads", short: "Threads", path: "/threads", testId: "nav-threads" },
+  { name: "Architecture", short: "Docs", path: "/how-it-works", testId: "nav-how-it-works" },
 ];
 
 export default function Navbar() {
@@ -21,7 +21,9 @@ export default function Navbar() {
           <span className="flex size-8 items-center justify-center border border-[#00F5FF]/40 bg-[#00F5FF]/10 text-[#00F5FF] transition-colors duration-200 group-hover:bg-[#00F5FF]/20">
             <ShieldOff className="size-4" />
           </span>
-          <span className="font-mono text-sm tracking-[0.24em] text-white">VAULT_ZERO</span>
+          <span className="hidden font-mono text-[11px] tracking-[0.16em] text-white sm:inline sm:text-sm sm:tracking-[0.2em]">
+            SERIAL_EXPERIMENTS
+          </span>
         </Link>
         <nav className="flex items-center gap-1 sm:gap-2">
           {LINKS.map((l) => (
@@ -36,11 +38,12 @@ export default function Navbar() {
                   : "text-slate-400 hover:text-white",
               )}
             >
-              {l.name}
+              <span className="sm:hidden">{l.short}</span>
+              <span className="hidden sm:inline">{l.name}</span>
             </Link>
           ))}
           <a
-            href="https://github.com/YOUR_USERNAME/vault-zero"
+            href="https://github.com/Sumit-Dwivedi/serial-experiments"
             target="_blank"
             rel="noopener noreferrer"
             data-testid="nav-github"

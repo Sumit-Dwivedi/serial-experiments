@@ -34,7 +34,7 @@ Self-contained byte-mode QR encoder (versions 1–10, EC level M), drawn to a ca
 None — anonymous by design. No credentials exist.
 
 ## Security hardening (4 pitfall fixes)
-1. **URL key leak**: ViewSecret captures `#key=` once, stashes it in `sessionStorage` (per-tab, dies with the tab) and calls `history.replaceState` to scrub the address bar/history. sessionStorage is required — without it a refresh would strip the key and make the note undecryptable. Cleared on destroy. index.html carries `robots: noindex,nofollow` + generic OpenGraph/Twitter cards ("Encrypted Message — VAULT_ZERO"). `Referrer-Policy: no-referrer` set by middleware.
+1. **URL key leak**: ViewSecret captures `#key=` once, stashes it in `sessionStorage` (per-tab, dies with the tab) and calls `history.replaceState` to scrub the address bar/history. sessionStorage is required — without it a refresh would strip the key and make the note undecryptable. Cleared on destroy. index.html carries `robots: noindex,nofollow` + generic OpenGraph/Twitter cards ("Encrypted Message — SERIAL_EXPERIMENTS"). `Referrer-Policy: no-referrer` set by middleware.
 2. **Confirmation gate**: `GET /api/secrets/{id}` claims (does NOT delete), decrements `reads_left`, sets `claimed_at` and returns a single-use `burn_token`. `DELETE /api/secrets/{id}?burn_token=` hard-deletes via `find_one_and_delete` (403 on a wrong token). `max_reads` 1–5 at creation; at 0 the secret locks (404) and `purge_at` pulls in to claimed_at + 5 min, reaped by the TTL index. Frontend shows "I've saved this — Destroy it now".
 3. **Wall abuse**: `GET /api/wall/challenge` issues a Hashcash puzzle (SHA-256 leading zero bits, DIFFICULTY=16 ≈ 3-4s avg in-browser via Web Crypto, high variance is inherent). Single-use, atomically consumed, replay → 400. `backend/lib/content_filter.py` blocklist rejects with a generic "Post rejected" (400) and logs nothing. Posts carry `expires_at` (default 48h, max 7d, poster-configurable) with a countdown badge.
 4. **Delivery trust**: `vite-plugin-sri` emits `integrity="sha384-..."` on production script/link tags. FastAPI middleware sets CSP, Referrer-Policy, X-Content-Type-Options, X-Frame-Options, HSTS, Permissions-Policy on every response.
@@ -63,3 +63,7 @@ Note: CSP/security headers are served on backend responses; the Vite dev server 
 ## Cipher rain + unfurl inspector
 - `components/CipherRain.tsx`: decorative falling-hex columns fed by the live cipher preview hex; keyframes `cipher-fall` live in `src/index.css` and are disabled under prefers-reduced-motion.
 - `/share-preview` (`pages/SharePreview.tsx`): renders the app's real OG tags as Slack and Discord unfurl mockups, with a paste-a-link box proving the `#key=` fragment is stripped. Reachable from the "Preview the unfurl" button on a generated secret link card.
+
+## Rebrand
+- App renamed VAULT_ZERO → SERIAL_EXPERIMENTS across UI copy, page title, OG/Twitter tags and og-card.png (regenerated).
+- Navbar GitHub link now points at https://github.com/Sumit-Dwivedi/serial-experiments; wordmark hides below sm and nav uses short labels (New/Wall/Threads/Docs) so the longer name still fits on mobile.
