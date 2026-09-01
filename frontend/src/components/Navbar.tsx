@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 const LINKS = [
   { name: "Create Secret", path: "/", testId: "nav-create-secret" },
   { name: "Anonymous Wall", path: "/wall", testId: "nav-anon-wall" },
+  { name: "Threads", path: "/threads", testId: "nav-threads" },
   { name: "Architecture", path: "/how-it-works", testId: "nav-how-it-works" },
 ];
 

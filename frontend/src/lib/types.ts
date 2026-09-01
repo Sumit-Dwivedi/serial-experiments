@@ -75,3 +75,31 @@ export interface BurnResult {
   burned: boolean;
   detail: string;
 }
+
+export interface ThreadSummary {
+  id: string;
+  title: string;
+  owner_hash: string;
+  status: "open" | "closed";
+  reply_count: number;
+  created_at: string;
+  last_activity_at: string;
+  expires_at: string;
+}
+
+export interface ThreadReply {
+  id: string;
+  thread_id: string;
+  parent_reply_id: string | null;
+  participant_hash: string;
+  is_op: boolean;
+  body: string;
+  created_at: string;
+  depth: number;
+  children: ThreadReply[];
+}
+
+export interface ThreadDetailData extends ThreadSummary {
+  body: string;
+  replies: ThreadReply[];
+}

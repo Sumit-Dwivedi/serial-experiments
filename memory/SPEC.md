@@ -42,3 +42,11 @@ None — anonymous by design. No credentials exist.
 TTL indexes (created in the server.py lifespan): `secrets.purge_at`, `wall_posts.expires_at`, `receipts.expires_at`, `pow_challenges.expires_at` — all `expireAfterSeconds=0`.
 
 Note: CSP/security headers are served on backend responses; the Vite dev server serves the HTML in dev, so SRI attributes appear only in `yarn build` output.
+
+## Anonymous Threads (HN-style) — verified
+- Endpoints: GET/POST /api/threads, GET /api/threads/{id}, POST /api/threads/{id}/replies, PATCH /api/threads/{id}/close, GET /api/threads/challenge?kind=thread|reply
+- Identity: deterministic pseudonym = hash(thread_id + client UUID token); owner token kept in sessionStorage only.
+- Guards: PoW (16 bits thread / 15 bits reply, single-use challenges), max nesting depth 5, content blocklist, TTL auto-expiry with reply cascade.
+- Rate limits (salted rotating IP hash, in-memory): threads 3/10min, thread replies 10/5min, wall posts 5/10min, wall replies 15/5min.
+- Note: recursive reply rendering is split across components/ReplyNode.tsx + components/ReplyChildren.tsx — a self-recursive JSX component in one file crashes the dev-server source transform.
+- Live API smoke test: `python backend/tests/test_threads_api.py [base_url]` (9/9 passing).

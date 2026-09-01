@@ -4,10 +4,11 @@ import uuid
 from datetime import datetime, timezone, timedelta
 from typing import List
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 
 from lib.db import db
 from lib.content_filter import is_blocked
+from lib.rate_limit import allow, client_hash
 from lib.pow import issue_challenge, verify_and_consume
 from models.vault import WallPost, WallPostCreate, WallReply, WallReplyCreate
 
@@ -56,7 +57,9 @@ async def wall_challenge():
 
 
 @router.post("/wall", response_model=WallPost, status_code=201)
-async def create_wall_post(data: WallPostCreate):
+async def create_wall_post(data: WallPostCreate, request: Request):
+    if not allow("wall", client_hash(request), limit=5, window_seconds=600):
+        raise HTTPException(status_code=429, detail="Too many posts. Try again shortly.")
     if not await verify_and_consume(data.challenge, data.nonce):
         raise HTTPException(status_code=400, detail="Invalid or expired proof of work.")
     if is_blocked(data.body):
@@ -80,8 +83,10 @@ async def create_wall_post(data: WallPostCreate):
 
 
 @router.post("/wall/{post_id}/replies", response_model=WallPost, status_code=201)
-async def reply_to_post(post_id: str, data: WallReplyCreate):
+async def reply_to_post(post_id: str, data: WallReplyCreate, request: Request):
     """Replies are anonymous too — a fresh ghost tag per reply, nothing linking them."""
+    if not allow("wall_reply", client_hash(request), limit=15, window_seconds=300):
+        raise HTTPException(status_code=429, detail="Too many replies. Slow down a moment.")
     if is_blocked(data.body):
         raise HTTPException(status_code=400, detail="Post rejected.")
     reply = {

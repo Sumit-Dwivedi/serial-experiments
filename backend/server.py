@@ -45,6 +45,9 @@ async def lifespan(app: FastAPI):
     await db.receipts.create_index("expires_at", expireAfterSeconds=0)
     await db.pow_challenges.create_index("expires_at", expireAfterSeconds=0)
     await db.pow_challenges.create_index("challenge", unique=True)
+    await db.threads.create_index("expires_at", expireAfterSeconds=0)
+    await db.threads.create_index("last_activity_at")
+    await db.replies.create_index("thread_id")
     yield
     client.close()
 
@@ -94,9 +97,11 @@ async def get_status_checks():
 
 from routers.secrets import router as secrets_router
 from routers.wall import router as wall_router
+from routers.threads import router as threads_router
 
 api_router.include_router(secrets_router)
 api_router.include_router(wall_router)
+api_router.include_router(threads_router)
 
 # Include the router in the main app
 app.include_router(api_router)

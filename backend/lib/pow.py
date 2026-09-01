@@ -24,19 +24,19 @@ def _leading_zero_bits(digest: bytes) -> int:
     return bits
 
 
-async def issue_challenge() -> dict:
+async def issue_challenge(difficulty: int = DIFFICULTY) -> dict:
     challenge = pysecrets.token_hex(16)
     now = datetime.now(timezone.utc)
     await db.pow_challenges.insert_one(
         {
             "challenge": challenge,
-            "difficulty": DIFFICULTY,
+            "difficulty": difficulty,
             "used": False,
             "created_at": now,
             "expires_at": now + timedelta(minutes=CHALLENGE_TTL_MINUTES),
         }
     )
-    return {"challenge": challenge, "difficulty": DIFFICULTY}
+    return {"challenge": challenge, "difficulty": difficulty}
 
 
 async def verify_and_consume(challenge: str, nonce: str) -> bool:
