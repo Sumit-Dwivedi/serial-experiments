@@ -8,11 +8,13 @@ import ReceiptStatus from "@/pages/ReceiptStatus";
 import Threads from "@/pages/Threads";
 import ThreadDetail from "@/pages/ThreadDetail";
 import SharePreview from "@/pages/SharePreview";
+import BootSequence from "@/components/BootSequence";
 
 // One <Route> per page in src/pages; BrowserRouter already wraps this in main.tsx.
 export default function App() {
   return (
     <>
+      <BootSequence />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/v/:id" element={<ViewSecret />} />

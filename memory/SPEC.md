@@ -74,3 +74,6 @@ Note: CSP/security headers are served on backend responses; the Vite dev server 
 - Texture: PageShell layers SVG fractal-noise grain (0.04) under a signal-blue 80px wire grid (0.15).
 - Motion utilities in index.css: `glitch-hover`, `type-reveal` (h1 entrances), `cursor-blink` (pending states); all disabled under prefers-reduced-motion.
 - Copy: system-log voice, "LAYER 07 //" eyebrows; brand reads SERIAL://EXPERIMENTS.
+
+## Boot sequence
+- `components/BootSequence.tsx`, mounted in App.tsx: one-time terminal boot log (8 lines, ~1.6s) with scanlines and a blinking cursor. Flag `boot_sequence_seen` in localStorage; skipped entirely under prefers-reduced-motion; dismissible via click, any key, or the SKIP button; auto-dismisses when finished.
