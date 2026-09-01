@@ -32,7 +32,7 @@ export default function CipherRain({ hex }: { hex: string }) {
   if (!hex) {
     return (
       <div
-        className="flex h-24 items-center justify-center border border-[#00F5FF]/10 bg-[#05070B] font-mono text-[11px] text-slate-600"
+        className="flex h-24 items-center justify-center border border-[#E8672E]/10 bg-[#0E0E10] font-mono text-[11px] text-[#3D4048]"
         data-testid="cipher-rain-idle"
       >
         Start typing to see the encrypted output…
@@ -42,7 +42,7 @@ export default function CipherRain({ hex }: { hex: string }) {
 
   return (
     <div
-      className="relative h-24 overflow-hidden border border-[#00F5FF]/10 bg-[#05070B]"
+      className="relative h-24 overflow-hidden border border-[#E8672E]/10 bg-[#0E0E10]"
       data-testid="cipher-rain"
       aria-hidden="true"
     >
@@ -56,7 +56,7 @@ export default function CipherRain({ hex }: { hex: string }) {
             {col.chars.map((ch, j) => (
               <span
                 key={j}
-                className={col.dim ? "text-[#00F5FF]/25" : "text-[#00F5FF]/60"}
+                className={col.dim ? "text-[#E8672E]/25" : "text-[#E8672E]/60"}
               >
                 {ch}
               </span>
@@ -65,7 +65,7 @@ export default function CipherRain({ hex }: { hex: string }) {
         ))}
       </div>
       {/* Top/bottom fade so the loop seam is invisible. */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#05070B] via-transparent to-[#05070B]" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#0E0E10] via-transparent to-[#0E0E10]" />
     </div>
   );
 }

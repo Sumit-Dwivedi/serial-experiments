@@ -49,25 +49,25 @@ export default function WallPostCard({ post, offset }: { post: WallPost; offset:
   return (
     <article
       data-testid={`wall-post-${post.id}`}
-      className={`border border-white/10 bg-[#11141E] p-5 transition-colors duration-200 hover:border-[#00F5FF]/30 ${
+      className={`border border-white/10 bg-[#17171A] p-5 transition-colors duration-200 hover:border-[#213A52] ${
         offset ? "lg:ml-8" : ""
       }`}
     >
       <div className="flex items-center justify-between gap-3">
-        <span className="font-mono text-[11px] tracking-wider text-[#00F5FF]">{post.ghost}</span>
+        <span className="font-mono text-[11px] tracking-wider text-[#E8672E]">{post.ghost}</span>
         <span className="flex items-center gap-2">
           <span
-            className="font-mono text-[10px] tracking-wider text-slate-500"
+            className="font-mono text-[10px] tracking-wider text-[#555961]"
             data-testid={`wall-post-countdown-${post.id}`}
           >
             ⏳ {timeLeft(post.expires_at)}
           </span>
-          <Badge variant="outline" className="font-mono text-[10px] text-slate-400">
+          <Badge variant="outline" className="font-mono text-[10px] text-[#6B6F76]">
             {post.tag}
           </Badge>
         </span>
       </div>
-      <p className="mt-3 text-[15px] leading-relaxed whitespace-pre-wrap text-slate-200">
+      <p className="mt-3 text-[15px] leading-relaxed whitespace-pre-wrap text-[#D4CFC6]">
         {post.body}
       </p>
 
@@ -76,7 +76,7 @@ export default function WallPostCard({ post, offset }: { post: WallPost; offset:
           type="button"
           data-testid={`wall-echo-button-${post.id}`}
           onClick={() => echo.mutate()}
-          className="font-mono text-[11px] tracking-wider text-slate-500 transition-colors duration-200 hover:text-[#00F5FF]"
+          className="glitch-hover font-mono text-[11px] tracking-wider text-[#555961] transition-colors duration-200 hover:text-[#E8672E]"
         >
           ▲ ECHO {post.echoes}
         </button>
@@ -84,7 +84,7 @@ export default function WallPostCard({ post, offset }: { post: WallPost; offset:
           type="button"
           data-testid={`wall-reply-toggle-${post.id}`}
           onClick={() => setReplying((s) => !s)}
-          className="flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-slate-500 transition-colors duration-200 hover:text-[#00F5FF]"
+          className="glitch-hover flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-[#555961] transition-colors duration-200 hover:text-[#E8672E]"
         >
           <MessageSquare className="size-3" /> REPLY {post.replies.length || ""}
         </button>
@@ -97,10 +97,10 @@ export default function WallPostCard({ post, offset }: { post: WallPost; offset:
         >
           {post.replies.map((r) => (
             <li key={r.id} data-testid={`wall-reply-${r.id}`}>
-              <span className="flex items-center gap-1.5 font-mono text-[10px] tracking-wider text-slate-500">
+              <span className="flex items-center gap-1.5 font-mono text-[10px] tracking-wider text-[#555961]">
                 <CornerDownRight className="size-3" /> {r.ghost}
               </span>
-              <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap text-slate-300">
+              <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap text-[#B8B3AA]">
                 {r.body}
               </p>
             </li>
@@ -115,14 +115,14 @@ export default function WallPostCard({ post, offset }: { post: WallPost; offset:
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder="Reply as a new ghost…"
-            className="min-h-20 resize-y border-white/10 bg-[#05070B] text-sm"
+            className="min-h-20 resize-y border-white/10 bg-[#0E0E10] text-sm"
           />
           <Button
             data-testid={`wall-reply-submit-${post.id}`}
             disabled={!draft.trim() || reply.isPending}
             onClick={() => reply.mutate()}
             size="sm"
-            className="mt-3 bg-[#00F5FF] font-mono text-[11px] tracking-[0.14em] text-black uppercase hover:bg-[#5CFBFF]"
+            className="glitch-hover mt-3 bg-[#E8672E] font-mono text-[11px] tracking-[0.14em] text-black uppercase hover:bg-[#F07A3F]"
           >
             <Send className="mr-2 size-3" />
             {reply.isPending ? "Sending…" : "Send reply"}

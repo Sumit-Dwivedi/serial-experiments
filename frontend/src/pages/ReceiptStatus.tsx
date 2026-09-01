@@ -24,33 +24,33 @@ export default function ReceiptStatus() {
   return (
     <PageShell>
       <div className="mx-auto max-w-2xl">
-        <p className="font-mono text-[11px] tracking-[0.32em] text-[#00F5FF]">
+        <p className="font-mono text-[11px] tracking-[0.32em] text-[#E8672E]">
           SENDER-ONLY READ RECEIPT
         </p>
         <h1
-          className="mt-4 font-heading text-3xl font-bold tracking-tight text-white sm:text-4xl"
+          className="type-reveal mt-4 font-mono text-3xl font-bold tracking-tight text-white sm:text-4xl"
           data-testid="receipt-heading"
         >
           Has it been opened?
         </h1>
-        <p className="mt-4 max-w-lg text-[15px] text-slate-400">
+        <p className="mt-4 max-w-lg text-[15px] text-[#6B6F76]">
           This page reports a timestamp and nothing else. No IP, no device, no location — we do
           not collect them, so we cannot show them.
         </p>
 
         {receipt.isError && (
           <div
-            className="mt-8 border border-[#FF3B30]/30 bg-[#2A0E13] p-6"
+            className="mt-8 border border-[#7A2A2A]/30 bg-[#1A0F0F] p-6"
             data-testid="receipt-unknown-card"
           >
-            <ShieldAlert className="size-6 text-[#FF3B30]" />
-            <p className="mt-3 text-rose-100">Unknown receipt. This status link is not valid.</p>
+            <ShieldAlert className="size-6 text-[#7A2A2A]" />
+            <p className="mt-3 text-[#D4A9A9]">Unknown receipt. This status link is not valid.</p>
           </div>
         )}
 
         {data && (
           <div
-            className="mt-8 border border-white/10 bg-[#11141E] p-6"
+            className="mt-8 border border-white/10 bg-[#17171A] p-6"
             data-testid="receipt-status-card"
           >
             <div className="flex items-center gap-3">
@@ -69,12 +69,12 @@ export default function ReceiptStatus() {
               </span>
               <div>
                 <p
-                  className="font-heading text-lg font-semibold text-white"
+                  className="font-mono text-lg font-semibold text-white"
                   data-testid="receipt-status-label"
                 >
                   {data.opened ? "Opened" : "Not opened yet"}
                 </p>
-                <p className="font-mono text-[11px] text-slate-500">
+                <p className="font-mono text-[11px] text-[#555961]">
                   {data.opened && data.opened_at
                     ? `read at ${fmt(data.opened_at)}`
                     : "waiting for pickup · auto-refreshing"}
@@ -84,14 +84,14 @@ export default function ReceiptStatus() {
 
             <dl className="mt-6 space-y-2 border-t border-white/10 pt-5 font-mono text-[11px]">
               <div className="flex justify-between">
-                <dt className="text-slate-500">CREATED</dt>
-                <dd className="text-slate-300" data-testid="receipt-created-at">
+                <dt className="text-[#555961]">CREATED</dt>
+                <dd className="text-[#B8B3AA]" data-testid="receipt-created-at">
                   {fmt(data.created_at)}
                 </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-slate-500">EXPIRES</dt>
-                <dd className="text-slate-300" data-testid="receipt-expires-at">
+                <dt className="text-[#555961]">EXPIRES</dt>
+                <dd className="text-[#B8B3AA]" data-testid="receipt-expires-at">
                   {fmt(data.expires_at)}
                 </dd>
               </div>
@@ -99,7 +99,7 @@ export default function ReceiptStatus() {
           </div>
         )}
 
-        <p className="mt-6 flex items-center gap-2 font-mono text-[11px] text-slate-600">
+        <p className="mt-6 flex items-center gap-2 font-mono text-[11px] text-[#3D4048]">
           <ReceiptIcon className="size-3.5" /> Bookmark this page — it is the only copy of the
           receipt.
         </p>

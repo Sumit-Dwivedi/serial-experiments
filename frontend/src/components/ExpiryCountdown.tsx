@@ -29,11 +29,11 @@ export default function ExpiryCountdown({ expiresAt }: { expiresAt: string }) {
   return (
     <p
       className={`flex items-center gap-2 font-mono text-[11px] tracking-[0.18em] ${
-        expired ? "text-[#FF3B30]" : "text-slate-400"
+        expired ? "text-[#7A2A2A]" : "text-[#6B6F76]"
       }`}
       data-testid="expiry-countdown"
     >
-      <Timer className={`size-3.5 ${expired ? "text-[#FF3B30]" : "text-[#00F5FF]"}`} />
+      <Timer className={`size-3.5 ${expired ? "text-[#7A2A2A]" : "text-[#E8672E]"}`} />
       {expired ? "EXPIRED — THIS LINK IS DEAD" : `SELF-DESTRUCTS IN ${label}`}
     </p>
   );

@@ -1,21 +1,19 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/space-grotesk";
-@import "@fontsource-variable/dm-sans";
 @import "@fontsource-variable/jetbrains-mono";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: 'Space Grotesk Variable', sans-serif;
-    --font-sans: 'DM Sans Variable', sans-serif;
+    --font-heading: 'JetBrains Mono Variable', monospace;
+    --font-sans: 'JetBrains Mono Variable', monospace;
     --font-mono: 'JetBrains Mono Variable', monospace;
-    --color-cyber: #00F5FF;
-    --color-burn: #FF3B30;
-    --color-panel: #11141E;
-    --color-panel-2: #181D2B;
-    --color-terminal: #05070B;
+    --color-cyber: #E8672E;
+    --color-burn: #7A2A2A;
+    --color-panel: #17171A;
+    --color-panel-2: #1E1E22;
+    --color-terminal: #0E0E10;
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -78,15 +76,15 @@
 
 :root {
     --background: #F8FAFC;
-    --foreground: #090A0F;
+    --foreground: #0A0A0C;
     --card: #FFFFFF;
-    --card-foreground: #090A0F;
+    --card-foreground: #0A0A0C;
     --popover: #FFFFFF;
-    --popover-foreground: #090A0F;
-    --primary: #00F5FF;
+    --popover-foreground: #0A0A0C;
+    --primary: #E8672E;
     --primary-foreground: #000000;
     --secondary: #E2E8F0;
-    --secondary-foreground: #090A0F;
+    --secondary-foreground: #0A0A0C;
     --muted: #E2E8F0;
     --muted-foreground: #475569;
     --accent: #CFFAFE;
@@ -94,55 +92,55 @@
     --destructive: #DC2626;
     --border: #CBD5E1;
     --input: #CBD5E1;
-    --ring: #00F5FF;
-    --chart-1: #00F5FF;
-    --chart-2: #38BDF8;
-    --chart-3: #34D399;
-    --chart-4: #FBBF24;
-    --chart-5: #FF3B30;
-    --radius: 0.4rem;
+    --ring: #E8672E;
+    --chart-1: #E8672E;
+    --chart-2: #E8672E;
+    --chart-3: #6B8F71;
+    --chart-4: #C4884D;
+    --chart-5: #7A2A2A;
+    --radius: 0rem;
     --sidebar: #F1F5F9;
-    --sidebar-foreground: #090A0F;
-    --sidebar-primary: #00F5FF;
+    --sidebar-foreground: #0A0A0C;
+    --sidebar-primary: #E8672E;
     --sidebar-primary-foreground: #000000;
     --sidebar-accent: #E2E8F0;
-    --sidebar-accent-foreground: #090A0F;
+    --sidebar-accent-foreground: #0A0A0C;
     --sidebar-border: #CBD5E1;
-    --sidebar-ring: #00F5FF;
+    --sidebar-ring: #E8672E;
 }
 
 .dark {
-    --background: #090A0F;
-    --foreground: #F3F4F6;
-    --card: #11141E;
-    --card-foreground: #F9FAFB;
-    --popover: #181D2B;
-    --popover-foreground: #FFFFFF;
-    --primary: #00F5FF;
+    --background: #0A0A0C;
+    --foreground: #ECE7DC;
+    --card: #17171A;
+    --card-foreground: #ECE7DC;
+    --popover: #1E1E22;
+    --popover-foreground: #ECE7DC;
+    --primary: #E8672E;
     --primary-foreground: #000000;
-    --secondary: #181D2B;
-    --secondary-foreground: #F9FAFB;
-    --muted: #181D2B;
-    --muted-foreground: #94A3B8;
+    --secondary: #1E1E22;
+    --secondary-foreground: #ECE7DC;
+    --muted: #1E1E22;
+    --muted-foreground: #6B6F76;
     --accent: #132833;
-    --accent-foreground: #00F5FF;
-    --destructive: #FF3B30;
+    --accent-foreground: #E8672E;
+    --destructive: #7A2A2A;
     --border: rgba(255, 255, 255, 0.08);
     --input: rgba(255, 255, 255, 0.14);
-    --ring: rgba(0, 245, 255, 0.5);
-    --chart-1: #00F5FF;
-    --chart-2: #38BDF8;
-    --chart-3: #34D399;
-    --chart-4: #FBBF24;
-    --chart-5: #FF3B30;
-    --sidebar: #11141E;
-    --sidebar-foreground: #F9FAFB;
-    --sidebar-primary: #00F5FF;
+    --ring: rgba(232, 103, 46, 0.5);
+    --chart-1: #E8672E;
+    --chart-2: #E8672E;
+    --chart-3: #6B8F71;
+    --chart-4: #C4884D;
+    --chart-5: #7A2A2A;
+    --sidebar: #17171A;
+    --sidebar-foreground: #ECE7DC;
+    --sidebar-primary: #E8672E;
     --sidebar-primary-foreground: #000000;
-    --sidebar-accent: #181D2B;
-    --sidebar-accent-foreground: #F9FAFB;
+    --sidebar-accent: #1E1E22;
+    --sidebar-accent-foreground: #ECE7DC;
     --sidebar-border: rgba(255, 255, 255, 0.08);
-    --sidebar-ring: rgba(0, 245, 255, 0.5);
+    --sidebar-ring: rgba(232, 103, 46, 0.5);
 }
 
 @layer base {
@@ -153,7 +151,49 @@
     @apply bg-background text-foreground;
     }
   html {
-    @apply font-sans;
+    @apply font-mono;
+    }
+}
+
+/* --- Lain motion set: nothing eases, everything flickers or reveals. --- */
+@keyframes glitch-flicker {
+    0%, 100% { opacity: 1; transform: translate(0); }
+    20% { opacity: 0.8; transform: translate(-1px, 1px); }
+    40% { opacity: 1; transform: translate(1px, -1px); }
+    60% { opacity: 0.9; transform: translate(-1px, 0); }
+    80% { opacity: 1; transform: translate(0); }
+}
+
+@keyframes type-reveal {
+    from { clip-path: inset(0 100% 0 0); }
+    to { clip-path: inset(0 0 0 0); }
+}
+
+@keyframes cursor-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+.glitch-hover:hover {
+    animation: glitch-flicker 0.15s ease-out;
+}
+
+.type-reveal {
+    animation: type-reveal 0.8s steps(30) forwards;
+}
+
+.cursor-blink::after {
+    content: "▌";
+    animation: cursor-blink 1s step-end infinite;
+    color: #E8672E;
+    margin-left: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .glitch-hover:hover,
+    .type-reveal,
+    .cursor-blink::after {
+        animation: none;
     }
 }
 

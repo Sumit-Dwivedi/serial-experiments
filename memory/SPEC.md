@@ -67,3 +67,10 @@ Note: CSP/security headers are served on backend responses; the Vite dev server 
 ## Rebrand
 - App renamed VAULT_ZERO → SERIAL_EXPERIMENTS across UI copy, page title, OG/Twitter tags and og-card.png (regenerated).
 - Navbar GitHub link now points at https://github.com/Sumit-Dwivedi/serial-experiments; wordmark hides below sm and nav uses short labels (New/Wall/Threads/Docs) so the longer name still fits on mobile.
+
+## Lain visual redesign
+- Palette: void black #0A0A0C, panels #17171A/#1E1E22, terminal #0E0E10, wired amber accent #E8672E (hover #F07A3F), signal blue #213A52 for borders/glow, bone text #ECE7DC → #D4CFC6 → #B8B3AA, muted greys #6B6F76/#555961/#3D4048, muted destructive #7A2A2A, muted success #6B8F71.
+- Typography: JetBrains Mono everywhere (Space Grotesk + DM Sans imports removed), --radius: 0.
+- Texture: PageShell layers SVG fractal-noise grain (0.04) under a signal-blue 80px wire grid (0.15).
+- Motion utilities in index.css: `glitch-hover`, `type-reveal` (h1 entrances), `cursor-blink` (pending states); all disabled under prefers-reduced-motion.
+- Copy: system-log voice, "LAYER 07 //" eyebrows; brand reads SERIAL://EXPERIMENTS.

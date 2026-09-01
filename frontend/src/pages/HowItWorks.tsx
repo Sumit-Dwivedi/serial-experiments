@@ -33,18 +33,17 @@ const STEPS = [
 export default function HowItWorks() {
   return (
     <PageShell>
-      <p className="font-mono text-[11px] tracking-[0.32em] text-[#00F5FF]">
-        UNDER THE HOOD
+      <p className="font-mono text-[11px] tracking-[0.4em] uppercase text-[#E8672E]">
+        LAYER 07 // SYSTEM ARCHITECTURE
       </p>
       <h1
-        className="mt-4 font-heading text-3xl font-bold tracking-tight text-white sm:text-4xl"
+        className="type-reveal mt-4 font-mono text-3xl font-bold tracking-tight text-white sm:text-4xl"
         data-testid="how-it-works-heading"
       >
-        Math you can verify. Code you can audit.
+        To know everything is to know nothing.
       </h1>
-      <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-slate-400">
-        Every claim on this page is backed by open-source code. Don't trust us — read it
-        yourself.
+      <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-[#6B6F76]">
+        Every claim below is verifiable in the source. Don't trust. Read.
       </p>
 
       <div className="mt-12 grid gap-6 lg:grid-cols-2">
@@ -53,22 +52,22 @@ export default function HowItWorks() {
             <li
               key={s.n}
               data-testid={`architecture-step-${s.n}`}
-              className="flex gap-5 border border-white/10 bg-[#11141E] p-5 transition-colors duration-200 hover:border-[#00F5FF]/30"
+              className="flex gap-5 border border-white/10 bg-[#17171A] p-5 transition-colors duration-200 hover:border-[#213A52]"
             >
-              <span className="font-mono text-sm text-[#00F5FF]">{s.n}</span>
+              <span className="font-mono text-sm text-[#E8672E]">{s.n}</span>
               <div>
-                <h2 className="font-heading text-lg font-semibold text-white">{s.title}</h2>
-                <p className="mt-2 text-sm leading-relaxed text-slate-400">{s.body}</p>
+                <h2 className="font-mono text-lg font-semibold text-white">{s.title}</h2>
+                <p className="mt-2 text-sm leading-relaxed text-[#6B6F76]">{s.body}</p>
               </div>
             </li>
           ))}
         </ol>
 
-        <aside className="h-fit border border-[#00F5FF]/20 bg-[#05070B] p-6 lg:sticky lg:top-24">
-          <p className="font-mono text-[11px] tracking-[0.22em] text-[#00F5FF]">
+        <aside className="h-fit border border-[#E8672E]/20 bg-[#0E0E10] p-6 lg:sticky lg:top-24">
+          <p className="font-mono text-[11px] tracking-[0.22em] text-[#E8672E]">
             WHAT THE SERVER ACTUALLY SEES
           </p>
-          <pre className="mt-4 overflow-x-auto font-mono text-[11px] leading-relaxed text-slate-400">
+          <pre className="mt-4 overflow-x-auto font-mono text-[11px] leading-relaxed text-[#6B6F76]">
 {`POST /api/secrets
 {
   "cipher_text": "u7Kx…Qz9",   // opaque
@@ -82,13 +81,13 @@ export default function HowItWorks() {
 // never present anywhere:
 //   plaintext, key, ip, user-agent, account`}
           </pre>
-          <p className="mt-6 text-sm text-slate-400">
+          <p className="mt-6 text-sm text-[#6B6F76]">
             Lose the link and the note is unrecoverable by design. That is the point.
           </p>
           <Link
             to="/"
             data-testid="architecture-create-cta"
-            className={`${buttonVariants({ variant: "outline" })} mt-6 w-full border-[#00F5FF]/40 font-mono text-xs text-[#00F5FF] hover:bg-[#00F5FF]/10`}
+            className={`${buttonVariants({ variant: "outline" })} mt-6 w-full border-[#E8672E]/40 font-mono text-xs text-[#E8672E] hover:bg-[#E8672E]/10`}
           >
             Create a secret
           </Link>

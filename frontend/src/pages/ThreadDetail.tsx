@@ -62,7 +62,7 @@ export default function ThreadDetail() {
     mutationFn: () => apiPatch(`/threads/${id}/close`, { owner_token: ownerToken }),
     onSuccess: () => {
       refresh();
-      toast.success("Sealed. No new replies can be added.");
+      toast.success("Thread sealed.");
     },
     onError: () => toast.error("Could not close the thread."),
   });
@@ -70,7 +70,7 @@ export default function ThreadDetail() {
   if (thread.isError) {
     return (
       <PageShell>
-        <p className="font-mono text-sm text-rose-300" data-testid="thread-missing">
+        <p className="font-mono text-sm text-[#9A6B6B]" data-testid="thread-missing">
           This thread no longer exists — it was closed out or expired.
         </p>
       </PageShell>
@@ -85,7 +85,7 @@ export default function ThreadDetail() {
       <Link
         to="/threads"
         data-testid="back-to-threads"
-        className="font-mono text-[11px] text-slate-500 hover:text-[#00F5FF]"
+        className="font-mono text-[11px] text-[#555961] hover:text-[#E8672E]"
       >
         ‹ all threads
       </Link>
@@ -93,31 +93,31 @@ export default function ThreadDetail() {
       {t && (
         <>
           <h1
-            className="mt-4 flex items-center gap-3 font-heading text-2xl font-bold tracking-tight text-white sm:text-3xl"
+            className="type-reveal mt-4 flex items-center gap-3 font-mono text-2xl font-bold tracking-tight text-white sm:text-3xl"
             data-testid="thread-title"
           >
             {!closed && (
               <span
                 data-testid="thread-live-dot"
                 aria-hidden="true"
-                className="inline-block size-[6px] shrink-0 animate-pulse rounded-full bg-emerald-400 shadow-[0_0_10px_2px_rgba(52,211,153,0.6)]"
+                className="inline-block size-[6px] shrink-0 animate-pulse rounded-full bg-[#6B8F71] shadow-[0_0_10px_2px_rgba(52,211,153,0.6)]"
               />
             )}
             {t.title}
           </h1>
-          <p className="mt-2 font-mono text-[11px] text-slate-500" data-testid="thread-meta">
-            <span className="text-[#00F5FF]/70">OP-{t.owner_hash}</span> · {ago(t.created_at)} ·{" "}
+          <p className="mt-2 font-mono text-[11px] text-[#555961]" data-testid="thread-meta">
+            <span className="text-[#E8672E]/70">OP-{t.owner_hash}</span> · {ago(t.created_at)} ·{" "}
             {t.reply_count} replies ·{" "}
             <span
               data-testid="thread-status-badge"
-              className={closed ? "text-rose-400" : "text-emerald-400"}
+              className={closed ? "text-[#9A6B6B]" : "text-[#6B8F71]"}
             >
               {closed ? "[SEALED]" : "[open]"}
             </span>
           </p>
           {t.body && (
             <p
-              className="mt-4 text-[15px] leading-relaxed whitespace-pre-wrap text-slate-300"
+              className="mt-4 text-[15px] leading-relaxed whitespace-pre-wrap text-[#B8B3AA]"
               data-testid="thread-body"
             >
               {t.body}
@@ -130,20 +130,20 @@ export default function ThreadDetail() {
               onClick={() => close.mutate()}
               disabled={close.isPending}
               variant="outline"
-              className="mt-5 border-[#FF3B30]/40 font-mono text-xs text-[#FF3B30] hover:bg-[#FF3B30]/10"
+              className="glitch-hover mt-5 border-[#7A2A2A]/40 font-mono text-xs text-[#7A2A2A] hover:bg-[#7A2A2A]/10"
             >
               <Lock className="mr-2 size-3.5" />
-              {close.isPending ? "Sealing…" : "Seal this thread"}
+              {close.isPending ? <span className="cursor-blink">Sealing</span> : "Seal this thread"}
             </Button>
           )}
 
           {closed && (
             <div
-              className="mt-5 flex items-center gap-2 border border-[#FF3B30]/30 bg-[#2A0E13] px-4 py-3"
+              className="mt-5 flex items-center gap-2 border border-[#7A2A2A]/30 bg-[#1A0F0F] px-4 py-3"
               data-testid="closed-banner"
             >
-              <Lock className="size-4 text-[#FF3B30]" />
-              <p className="text-sm text-rose-100">
+              <Lock className="size-4 text-[#7A2A2A]" />
+              <p className="text-sm text-[#D4A9A9]">
                 This thread has been closed by the creator.
               </p>
             </div>
@@ -156,23 +156,23 @@ export default function ThreadDetail() {
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 placeholder="Add to the discussion…"
-                className="min-h-24 resize-y border-white/10 bg-[#05070B] text-sm"
+                className="min-h-24 resize-y border-white/10 bg-[#0E0E10] text-sm"
               />
               <Button
                 data-testid="thread-reply-submit"
                 disabled={!draft.trim() || post.isPending}
                 onClick={() => post.mutate()}
-                className="mt-3 bg-[#00F5FF] font-mono text-xs tracking-[0.16em] text-black uppercase hover:bg-[#5CFBFF]"
+                className="glitch-hover mt-3 bg-[#E8672E] font-mono text-xs tracking-[0.16em] text-black uppercase hover:bg-[#F07A3F]"
               >
                 <MessageSquare className="mr-2 size-3.5" />
-                {working ? "Solving proof of work…" : post.isPending ? "Posting…" : "Reply"}
+                {working ? <span className="cursor-blink">Solving proof of work</span> : post.isPending ? <span className="cursor-blink">Transmitting</span> : "Respond"}
               </Button>
             </div>
           )}
 
           <ul className="mt-8 space-y-1" data-testid="reply-tree">
             {t.replies.length === 0 && (
-              <li className="font-mono text-xs text-slate-600" data-testid="no-replies">
+              <li className="font-mono text-xs text-[#3D4048]" data-testid="no-replies">
                 No replies yet.
               </li>
             )}

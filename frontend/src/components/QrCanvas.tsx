@@ -27,7 +27,7 @@ export default function QrCanvas({ text, size = 240 }: { text: string; size?: nu
     canvas.style.height = `${px}px`;
     ctx.fillStyle = "#FFFFFF";
     ctx.fillRect(0, 0, px, px);
-    ctx.fillStyle = "#05070B";
+    ctx.fillStyle = "#0E0E10";
     matrix.forEach((row, r) =>
       row.forEach((dark, c) => {
         if (dark) ctx.fillRect((c + quiet) * scale, (r + quiet) * scale, scale, scale);

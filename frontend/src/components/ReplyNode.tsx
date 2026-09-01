@@ -66,16 +66,16 @@ export default function ReplyNode({
 
   return (
     <li className={indent} data-testid={`reply-${reply.id}`}>
-      <div className="py-2 font-mono text-[11px] text-slate-500">
+      <div className="py-2 font-mono text-[11px] text-[#555961]">
         <button
           type="button"
           data-testid={`reply-collapse-${reply.id}`}
           onClick={() => setCollapsed((c) => !c)}
-          className="mr-2 text-slate-600 transition-colors duration-200 hover:text-[#00F5FF]"
+          className="glitch-hover mr-2 text-[#3D4048] transition-colors duration-200 hover:text-[#E8672E]"
         >
           [{collapsed ? "+" : "-"}]
         </button>
-        <span className={reply.is_op ? "text-[#00F5FF]" : "text-slate-400"}>
+        <span className={reply.is_op ? "text-[#E8672E]" : "text-[#6B6F76]"}>
           {reply.is_op ? "OP" : "Anon"}-{reply.participant_hash}
         </span>
         <span className="mx-2">·</span>
@@ -83,7 +83,7 @@ export default function ReplyNode({
       </div>
       {!collapsed && (
         <>
-          <p className="pb-2 text-sm leading-relaxed whitespace-pre-wrap text-slate-200">
+          <p className="pb-2 text-sm leading-relaxed whitespace-pre-wrap text-[#D4CFC6]">
             {reply.body}
           </p>
           {!closed && reply.depth < MAX_DEPTH && (
@@ -91,9 +91,9 @@ export default function ReplyNode({
               type="button"
               data-testid={`reply-link-${reply.id}`}
               onClick={() => setOpen((s) => !s)}
-              className="pb-2 font-mono text-[11px] text-slate-500 transition-colors duration-200 hover:text-[#00F5FF]"
+              className="glitch-hover pb-2 font-mono text-[11px] text-[#555961] transition-colors duration-200 hover:text-[#E8672E]"
             >
-              reply
+              respond
             </button>
           )}
           {open && (
@@ -102,16 +102,16 @@ export default function ReplyNode({
                 data-testid={`reply-input-${reply.id}`}
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
-                className="min-h-20 resize-y border-white/10 bg-[#05070B] text-sm"
+                className="min-h-20 resize-y border-white/10 bg-[#0E0E10] text-sm"
               />
               <Button
                 data-testid={`reply-submit-${reply.id}`}
                 size="sm"
                 disabled={!draft.trim() || send.isPending}
                 onClick={() => send.mutate()}
-                className="mt-2 bg-[#00F5FF] font-mono text-[11px] text-black uppercase hover:bg-[#5CFBFF]"
+                className="glitch-hover mt-2 bg-[#E8672E] font-mono text-[11px] text-black uppercase hover:bg-[#F07A3F]"
               >
-                {working ? "Solving PoW…" : send.isPending ? "Posting…" : "Reply"}
+                {working ? <span className="cursor-blink">Solving PoW</span> : send.isPending ? <span className="cursor-blink">Transmitting</span> : "Respond"}
               </Button>
             </div>
           )}
@@ -119,7 +119,7 @@ export default function ReplyNode({
             <Link
               to={`/threads/${threadId}?root=${reply.id}`}
               data-testid={`continue-thread-${reply.id}`}
-              className="mb-2 block font-mono text-[11px] text-[#00F5FF]/80 hover:text-[#00F5FF]"
+              className="mb-2 block font-mono text-[11px] text-[#E8672E]/80 hover:text-[#E8672E]"
             >
               Continue thread →
             </Link>

@@ -67,7 +67,7 @@ export default function AnonymousWall() {
     onSuccess: () => {
       setBody("");
       qc.invalidateQueries({ queryKey: ["wall"] });
-      toast.success("Transmitted anonymously. No identity attached.");
+      toast.success("Transmitted. No identity attached.");
     },
     onError: (e) =>
       toast.error(
@@ -86,37 +86,37 @@ export default function AnonymousWall() {
 
   return (
     <PageShell>
-      <p className="font-mono text-[11px] tracking-[0.32em] text-[#00F5FF]">
-        GHOST FREQUENCY
+      <p className="font-mono text-[11px] tracking-[0.4em] uppercase text-[#E8672E]">
+        LAYER 07 // OPEN LINE
       </p>
       <h1
-        className="mt-4 font-heading text-3xl font-bold tracking-tight text-white sm:text-4xl"
+        className="type-reveal mt-4 font-mono text-3xl font-bold tracking-tight text-white sm:text-4xl"
         data-testid="wall-heading"
       >
-        Speak without a name.
+        No matter where you go, everyone's connected.
       </h1>
-      <p className="mt-4 max-w-xl text-[15px] text-slate-400">
-        No account. No IP. No fingerprint. Everything here evaporates.
+      <p className="mt-4 max-w-xl text-[15px] text-[#6B6F76]">
+        No account. No IP. No fingerprint. Everything here dissolves.
       </p>
 
       <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.4fr)]">
         <section
-          className="h-fit border border-white/10 bg-[#11141E] p-5 lg:sticky lg:top-24"
+          className="h-fit border border-white/10 bg-[#17171A] p-5 lg:sticky lg:top-24"
           data-testid="wall-composer"
         >
-          <div className="mb-4 flex items-center gap-2 font-mono text-[11px] tracking-[0.22em] text-slate-500">
-            <Radio className="size-3.5 text-[#00F5FF]" /> BROADCAST ANONYMOUSLY
+          <div className="mb-4 flex items-center gap-2 font-mono text-[11px] tracking-[0.22em] text-[#555961]">
+            <Radio className="size-3.5 text-[#E8672E]" /> BROADCAST // ANONYMOUS
           </div>
           <Textarea
             data-testid="wall-composer-input"
             value={body}
             onChange={(e) => setBody(e.target.value)}
             placeholder="Say the thing you cannot sign your name to…"
-            className="min-h-36 resize-y border-white/10 bg-[#05070B] text-sm"
+            className="min-h-36 resize-y border-white/10 bg-[#0E0E10] text-sm"
           />
           <Select value={tag} onValueChange={(v: string) => setTag(v)}>
             <SelectTrigger
-              className="mt-4 w-full border-white/10 bg-[#05070B] font-mono text-xs"
+              className="mt-4 w-full border-white/10 bg-[#0E0E10] font-mono text-xs"
               data-testid="wall-tag-select-trigger"
             >
               <SelectValue>{(v) => TAGS[v as string]}</SelectValue>
@@ -131,7 +131,7 @@ export default function AnonymousWall() {
           </Select>
           <Select value={life} onValueChange={(v: string) => setLife(v)}>
             <SelectTrigger
-              className="mt-3 w-full border-white/10 bg-[#05070B] font-mono text-xs"
+              className="mt-3 w-full border-white/10 bg-[#0E0E10] font-mono text-xs"
               data-testid="wall-life-select-trigger"
             >
               <SelectValue>{(v) => LIFE_LABELS[v as string]}</SelectValue>
@@ -148,10 +148,10 @@ export default function AnonymousWall() {
             data-testid="wall-publish-button"
             disabled={!body.trim() || publish.isPending}
             onClick={() => publish.mutate()}
-            className="mt-4 w-full bg-[#00F5FF] font-mono text-xs tracking-[0.18em] text-black uppercase hover:bg-[#5CFBFF]"
+            className="glitch-hover mt-4 w-full bg-[#E8672E] font-mono text-xs tracking-[0.18em] text-black uppercase hover:bg-[#F07A3F]"
           >
             <Send className="mr-2 size-3.5" />
-            {powing ? "Solving proof of work…" : publish.isPending ? "Posting…" : "Post to the void"}
+            {powing ? <span className="cursor-blink">Solving proof of work</span> : publish.isPending ? <span className="cursor-blink">Transmitting</span> : "Transmit"}
           </Button>
         </section>
 
@@ -171,17 +171,17 @@ export default function AnonymousWall() {
                   onClick={() => setFilter(t)}
                   className={`border px-3 py-1.5 font-mono text-[11px] tracking-wider uppercase transition-colors duration-200 ${
                     active
-                      ? "border-[#00F5FF]/50 bg-[#00F5FF]/10 text-[#00F5FF]"
-                      : "border-white/10 text-slate-500 hover:border-white/25 hover:text-slate-200"
+                      ? "border-[#E8672E]/50 bg-[#E8672E]/10 text-[#E8672E]"
+                      : "border-white/10 text-[#555961] hover:border-white/25 hover:text-[#D4CFC6]"
                   }`}
                 >
-                  {t} <span className="text-slate-600">{count}</span>
+                  {t} <span className="text-[#3D4048]">{count}</span>
                 </button>
               );
             })}
           </div>
           {posts.isLoading && (
-            <p className="font-mono text-xs text-slate-600" data-testid="wall-loading">
+            <p className="font-mono text-xs text-[#3D4048]" data-testid="wall-loading">
               Loading feed…
             </p>
           )}
@@ -190,8 +190,8 @@ export default function AnonymousWall() {
               className="border border-dashed border-white/10 p-10 text-center"
               data-testid="wall-empty-state"
             >
-              <Ghost className="mx-auto size-6 text-slate-600" />
-              <p className="mt-3 text-sm text-slate-500">
+              <Ghost className="mx-auto size-6 text-[#3D4048]" />
+              <p className="mt-3 text-sm text-[#555961]">
                 {filter === "all"
                   ? "The wall is silent. Be the first ghost to speak."
                   : `No ${filter} yet. Be the first ghost to post one.`}

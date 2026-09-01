@@ -115,9 +115,9 @@ export default function ViewSecret() {
     onSuccess: () => {
       setDestroyed(true);
       sessionStorage.removeItem(stashKey);
-      toast.success("Wiped. No trace remains.");
+      toast.success("Record erased. No trace in the Wired.");
     },
-    onError: () => toast.error("Could not destroy it — it may already be gone."),
+    onError: () => toast.error("Connection failed."),
   });
 
   const missing = meta.isError && plain === null;
@@ -125,23 +125,23 @@ export default function ViewSecret() {
   return (
     <PageShell>
       <div className="mx-auto max-w-2xl">
-        <p className="font-mono text-[11px] tracking-[0.32em] text-[#00F5FF]">
-          ZERO-KNOWLEDGE DECRYPT CHAMBER
+        <p className="font-mono text-[11px] tracking-[0.4em] uppercase text-[#E8672E]">
+          LAYER 07 // DECRYPT SEQUENCE
         </p>
         <h1
-          className="mt-4 font-heading text-3xl font-bold tracking-tight text-white sm:text-4xl"
+          className="type-reveal mt-4 font-mono text-3xl font-bold tracking-tight text-white sm:text-4xl"
           data-testid="view-secret-heading"
         >
-          {plain !== null ? "The seal is broken." : "Someone left you a secret."}
+          {plain !== null ? "The seal is broken." : "You seem to have mail."}
         </h1>
 
         {missing && (
           <div
-            className="mt-8 border border-[#FF3B30]/30 bg-[#2A0E13] p-6"
+            className="mt-8 border border-[#7A2A2A]/30 bg-[#1A0F0F] p-6"
             data-testid="secret-unavailable-card"
           >
-            <ShieldAlert className="size-6 text-[#FF3B30]" />
-            <p className="mt-3 text-rose-100">
+            <ShieldAlert className="size-6 text-[#7A2A2A]" />
+            <p className="mt-3 text-[#D4A9A9]">
               This secret no longer exists. It was either already read, or it expired.
             </p>
           </div>
@@ -149,18 +149,18 @@ export default function ViewSecret() {
 
         {plain === null && !missing && (
           <div
-            className="mt-8 border border-white/10 bg-[#11141E] p-6"
+            className="mt-8 border border-white/10 bg-[#17171A] p-6"
             data-testid="locked-payload-card"
           >
             <div className="flex items-center gap-3">
-              <span className="flex size-10 items-center justify-center border border-[#00F5FF]/30 bg-[#00F5FF]/10">
-                <Lock className="size-4 text-[#00F5FF]" />
+              <span className="flex size-10 items-center justify-center border border-[#E8672E]/30 bg-[#E8672E]/10">
+                <Lock className="size-4 text-[#E8672E]" />
               </span>
               <div>
-                <p className="font-mono text-xs tracking-wider text-slate-300">
+                <p className="font-mono text-xs tracking-wider text-[#B8B3AA]">
                   PAYLOAD TOKEN {id.slice(0, 8)}
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-[#555961]">
                   {meta.data?.burn_after_read
                     ? "Opening this destroys it permanently."
                     : "Readable until it expires."}
@@ -177,7 +177,7 @@ export default function ViewSecret() {
 
             {meta.data?.has_passphrase && (
               <div className="mt-6">
-                <Label htmlFor="unlock-pass" className="text-slate-300">
+                <Label htmlFor="unlock-pass" className="text-[#B8B3AA]">
                   Passphrase required
                 </Label>
                 <Input
@@ -186,14 +186,14 @@ export default function ViewSecret() {
                   type="password"
                   value={passphrase}
                   onChange={(e) => setPassphrase(e.target.value)}
-                  className="mt-2 border-white/10 bg-[#05070B] font-mono text-sm"
+                  className="mt-2 border-white/10 bg-[#0E0E10] font-mono text-sm"
                   placeholder="shared out-of-band"
                 />
               </div>
             )}
 
             {failure && (
-              <p className="mt-4 text-sm text-rose-400" data-testid="decrypt-error-message">
+              <p className="mt-4 text-sm text-[#9A6B6B]" data-testid="decrypt-error-message">
                 {failure}
               </p>
             )}
@@ -202,10 +202,10 @@ export default function ViewSecret() {
               data-testid="decrypt-reveal-button"
               onClick={() => open.mutate()}
               disabled={open.isPending || meta.isLoading}
-              className="mt-6 w-full bg-[#00F5FF] font-mono text-xs tracking-[0.18em] text-black uppercase transition-transform duration-200 hover:bg-[#5CFBFF] active:scale-[0.99]"
+              className="glitch-hover mt-6 w-full bg-[#E8672E] font-mono text-xs tracking-[0.18em] text-black uppercase duration-200 hover:bg-[#F07A3F] "
             >
               <Unlock className="mr-2 size-3.5" />
-              {open.isPending ? "Decrypting…" : "Decrypt & reveal"}
+              {open.isPending ? <span className="cursor-blink">Decrypting</span> : "Unseal"}
             </Button>
           </div>
         )}
@@ -214,22 +214,22 @@ export default function ViewSecret() {
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
+            transition={{ duration: 0.3, ease: "linear" }}
             className="mt-8"
             data-testid="decrypted-secret-card"
           >
             {burned && (
               <div
-                className="mb-4 flex items-center gap-2 border border-[#FF3B30]/30 bg-[#2A0E13] px-4 py-3"
+                className="mb-4 flex items-center gap-2 border border-[#7A2A2A]/30 bg-[#1A0F0F] px-4 py-3"
                 data-testid="burn-notice"
               >
-                <Flame className="size-4 text-[#FF3B30]" />
-                <p className="text-sm text-rose-100">This secret has been destroyed.</p>
+                <Flame className="size-4 text-[#7A2A2A]" />
+                <p className="text-sm text-[#D4A9A9]">This secret has been destroyed.</p>
               </div>
             )}
             {plain.length > 0 && (
               <pre
-                className="border border-[#00F5FF]/25 bg-[#05070B] p-6 font-mono text-sm leading-relaxed whitespace-pre-wrap text-[#C8FDFF]"
+                className="border border-[#E8672E]/25 bg-[#0E0E10] p-6 font-mono text-sm leading-relaxed whitespace-pre-wrap text-[#ECE7DC]"
                 data-testid="decrypted-secret-text"
               >
                 {plain}
@@ -238,20 +238,20 @@ export default function ViewSecret() {
 
             {revealed.length > 0 && (
               <div className="mt-5" data-testid="decrypted-attachments">
-                <p className="flex items-center gap-2 font-mono text-[11px] tracking-[0.2em] text-slate-400">
-                  <Paperclip className="size-3.5 text-[#00F5FF]" /> DECRYPTED FILES
+                <p className="flex items-center gap-2 font-mono text-[11px] tracking-[0.2em] text-[#6B6F76]">
+                  <Paperclip className="size-3.5 text-[#E8672E]" /> DECRYPTED FILES
                 </p>
                 <ul className="mt-3 space-y-2">
                   {revealed.map((f) => (
                     <li
                       key={f.id}
-                      className="flex items-center justify-between gap-3 border border-white/10 bg-[#11141E] px-4 py-3"
+                      className="flex items-center justify-between gap-3 border border-white/10 bg-[#17171A] px-4 py-3"
                     >
                       <span className="min-w-0">
-                        <span className="block truncate font-mono text-xs text-slate-200">
+                        <span className="block truncate font-mono text-xs text-[#D4CFC6]">
                           {f.name}
                         </span>
-                        <span className="font-mono text-[11px] text-slate-600">
+                        <span className="font-mono text-[11px] text-[#3D4048]">
                           {prettySize(f.size)}
                         </span>
                       </span>
@@ -259,7 +259,7 @@ export default function ViewSecret() {
                         href={f.url}
                         download={f.name}
                         data-testid={`download-attachment-${f.id}`}
-                        className="flex shrink-0 items-center gap-2 border border-[#00F5FF]/40 px-3 py-1.5 font-mono text-[11px] text-[#00F5FF] transition-colors duration-200 hover:bg-[#00F5FF]/10"
+                        className="flex shrink-0 items-center gap-2 border border-[#E8672E]/40 px-3 py-1.5 font-mono text-[11px] text-[#E8672E] transition-colors duration-200 hover:bg-[#E8672E]/10"
                       >
                         <Download className="size-3.5" /> Download
                       </a>
@@ -284,13 +284,13 @@ export default function ViewSecret() {
             )}
             {burnToken && !destroyed && (
               <div
-                className="mt-6 border border-[#FF3B30]/30 bg-[#2A0E13] p-5"
+                className="mt-6 border border-[#7A2A2A]/30 bg-[#1A0F0F] p-5"
                 data-testid="destroy-gate"
               >
-                <p className="flex items-center gap-2 text-sm font-medium text-rose-100">
-                  <Flame className="size-4 text-[#FF3B30]" /> Still on the server
+                <p className="flex items-center gap-2 text-sm font-medium text-[#D4A9A9]">
+                  <Flame className="size-4 text-[#7A2A2A]" /> Still on the server
                 </p>
-                <p className="mt-2 text-xs leading-relaxed text-rose-300/80">
+                <p className="mt-2 text-xs leading-relaxed text-[#9A6B6B]/80">
                   Nothing was deleted yet, so a refresh won't lose it. Save what you need,
                   then destroy it. If you just close this tab, it self-deletes within 5
                   minutes anyway.
@@ -299,10 +299,10 @@ export default function ViewSecret() {
                   data-testid="destroy-now-button"
                   onClick={() => destroy.mutate()}
                   disabled={destroy.isPending}
-                  className="mt-4 w-full bg-[#FF3B30] font-mono text-xs tracking-[0.18em] text-white uppercase transition-transform duration-200 hover:bg-[#FF5A50] active:scale-[0.99]"
+                  className="glitch-hover mt-4 w-full bg-[#7A2A2A] font-mono text-xs tracking-[0.18em] text-white uppercase duration-200 hover:bg-[#8B3A3A] "
                 >
                   <Flame className="mr-2 size-3.5" />
-                  {destroy.isPending ? "Destroying…" : "I've saved this — Destroy it now"}
+                  {destroy.isPending ? <span className="cursor-blink">Erasing</span> : "I've read it — erase from the Wired"}
                 </Button>
               </div>
             )}
@@ -313,28 +313,28 @@ export default function ViewSecret() {
                 data-testid="destroyed-confirmation"
               >
                 <ShieldCheck className="size-4 text-[#34D399]" />
-                <p className="text-sm text-emerald-100">
-                  Destroyed. The ciphertext is gone from the server for good.
+                <p className="text-sm text-[#B8C9B8]">
+                  Gone. No record of this exists anywhere.
                 </p>
               </div>
             )}
           </motion.div>
         )}
 
-        <p className="mt-12 text-center font-mono text-[11px] text-slate-600">
+        <p className="mt-12 text-center font-mono text-[11px] text-[#3D4048]">
           Encrypted end-to-end by{" "}
           <a
             href="/"
-            className="text-[#00F5FF]/50 transition-colors duration-200 hover:text-[#00F5FF]"
+            className="text-[#E8672E]/50 transition-colors duration-200 hover:text-[#E8672E]"
             data-testid="viral-cta"
           >
-            SERIAL_EXPERIMENTS
+            SERIAL://EXPERIMENTS
           </a>{" "}
           ·{" "}
           <a
             href="/"
             data-testid="viral-cta-secondary"
-            className="text-slate-500 transition-colors duration-200 hover:text-slate-300"
+            className="text-[#555961] transition-colors duration-200 hover:text-[#B8B3AA]"
           >
             Send your own zero-trace message →
           </a>

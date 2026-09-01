@@ -66,7 +66,7 @@ CIPHER=$(echo -n "$SECRET" | openssl enc -aes-256-gcm \\
   -K $(echo -n "$KEY" | base64 -d | xxd -p) \\
   -iv $(echo -n "$IV" | base64 -d | xxd -p) \\
   -nosalt | base64)
-# Post to SERIAL_EXPERIMENTS
+# Post to SERIAL://EXPERIMENTS
 ID=$(curl -s -X POST ${APP_ORIGIN}/api/secrets \\
   -H "Content-Type: application/json" \\
   -d "{\\"cipher_text\\": \\"$CIPHER\\", \\"iv\\": \\"$IV\\"}" \\
@@ -209,15 +209,15 @@ export default function Home() {
       setText("");
       setPassphrase("");
       setFiles([]);
-      toast.success("Link forged. The key is in the fragment.");
+      toast.success("Link forged. Key embedded in fragment.");
     },
-    onError: () => toast.error("Could not store the encrypted payload. Try again."),
+    onError: () => toast.error("Connection failed."),
   });
 
   const copy = async (value: string, label: string) => {
     try {
       await navigator.clipboard.writeText(value);
-      toast.success(`${label} copied.`);
+      toast.success("Copied.");
     } catch {
       toast.message("Copy manually — clipboard is blocked here.");
     }
@@ -227,18 +227,20 @@ export default function Home() {
     <PageShell>
       <div className="grid gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-14">
         <section className="lg:pt-6">
-          <p className="font-mono text-[11px] tracking-[0.32em] text-[#00F5FF]">
-            ENCRYPTION ENGINE
+          <p className="font-mono text-[11px] tracking-[0.4em] uppercase text-[#E8672E]">
+            LAYER 07 // ENCRYPTION ENGINE
           </p>
           <h1
-            className="mt-5 font-heading text-4xl leading-[1.05] font-extrabold tracking-tighter text-white sm:text-5xl"
+            className="type-reveal mt-5 font-mono text-4xl leading-[1.05] font-extrabold tracking-tighter text-white sm:text-5xl"
             data-testid="home-heading"
           >
-            Whisper something into the <span className="text-[#00F5FF]">void</span>.
+            Present day. Present time.
+            <br />
+            And you don't even have to <span className="text-[#E8672E]">log in</span>.
           </h1>
-          <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-slate-400">
-            Client-side AES-256-GCM. The key lives in the link. We never see your data — not
-            even by accident.
+          <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-[#6B6F76]">
+            256-bit AES-GCM. The key exists only in the link fragment — a part of the URL the
+            server never receives. We store ciphertext and nothing else.
           </p>
 
           <div className="mt-8 space-y-3">
@@ -250,13 +252,13 @@ export default function Home() {
             ].map((row) => (
               <div
                 key={row.label}
-                className="flex items-center justify-between border border-white/10 bg-[#11141E] px-4 py-3"
+                className="flex items-center justify-between border border-white/10 bg-[#17171A] px-4 py-3"
               >
-                <span className="flex items-center gap-2.5 text-sm text-slate-300">
-                  <row.icon className="size-4 text-[#00F5FF]" />
+                <span className="flex items-center gap-2.5 text-sm text-[#B8B3AA]">
+                  <row.icon className="size-4 text-[#E8672E]" />
                   {row.label}
                 </span>
-                <span className="font-mono text-[11px] tracking-wider text-slate-500">
+                <span className="font-mono text-[11px] tracking-wider text-[#555961]">
                   {row.value}
                 </span>
               </div>
@@ -265,15 +267,15 @@ export default function Home() {
         </section>
 
         <section
-          className="relative border border-white/10 bg-[#11141E] p-5 shadow-[0_0_60px_-25px_rgba(0,245,255,0.4)] sm:p-7"
+          className="relative border border-white/10 bg-[#17171A] p-5 shadow-[0_0_50px_-20px_rgba(33,58,82,0.4)] sm:p-7"
           data-testid="secret-creator-panel"
         >
-          <div className="mb-5 flex items-center gap-2 font-mono text-[11px] tracking-[0.22em] text-slate-500">
-            <Lock className="size-3.5 text-[#00F5FF]" />
-            NEW ENCRYPTED PAYLOAD
+          <div className="mb-5 flex items-center gap-2 font-mono text-[11px] tracking-[0.22em] text-[#555961]">
+            <Lock className="size-3.5 text-[#E8672E]" />
+            INITIALIZE PAYLOAD
           </div>
 
-          <Label htmlFor="secret-text" className="text-slate-300">
+          <Label htmlFor="secret-text" className="text-[#B8B3AA]">
             Your secret
           </Label>
           <div
@@ -289,7 +291,7 @@ export default function Home() {
               addFiles(e.dataTransfer.files);
             }}
             className={`relative mt-2 transition-colors duration-200 ${
-              dragging ? "ring-2 ring-[#00F5FF]/70" : ""
+              dragging ? "ring-2 ring-[#E8672E]/70" : ""
             }`}
           >
             <Textarea
@@ -299,33 +301,33 @@ export default function Home() {
               onChange={(e) => setText(e.target.value)}
               onPaste={handlePaste}
               placeholder="Type, paste text or a screenshot — or drop files right here. Nothing leaves this tab unencrypted…"
-              className="min-h-40 resize-y border-white/10 bg-[#05070B] font-mono text-sm text-slate-200 focus-visible:ring-[#00F5FF]/50"
+              className="min-h-40 resize-y border-white/10 bg-[#0E0E10] font-mono text-sm text-[#D4CFC6] focus-visible:ring-[#E8672E]/50"
             />
             {dragging && (
               <div
-                className="pointer-events-none absolute inset-0 flex items-center justify-center bg-[#05070B]/85"
+                className="pointer-events-none absolute inset-0 flex items-center justify-center bg-[#0E0E10]/85"
                 data-testid="dropzone-overlay"
               >
-                <span className="flex items-center gap-2 font-mono text-xs tracking-[0.2em] text-[#00F5FF]">
+                <span className="flex items-center gap-2 font-mono text-xs tracking-[0.2em] text-[#E8672E]">
                   <Paperclip className="size-4" /> DROP TO ENCRYPT
                 </span>
               </div>
             )}
           </div>
-          <p className="mt-2 font-mono text-[11px] text-slate-600" data-testid="char-counter">
+          <p className="mt-2 font-mono text-[11px] text-[#3D4048]" data-testid="char-counter">
             {text.length} chars · entropy source: crypto.getRandomValues
           </p>
 
           {/* Cosmetic only: encrypts a copy of the draft purely to show the ciphertext. */}
           <details className="mt-3" data-testid="cipher-preview-toggle">
-            <summary className="cursor-pointer font-mono text-[11px] tracking-wider text-slate-500 transition-colors duration-200 hover:text-[#00F5FF]">
+            <summary className="cursor-pointer font-mono text-[11px] tracking-wider text-[#555961] transition-colors duration-200 hover:text-[#E8672E]">
               ▸ Cipher preview
             </summary>
             <div className="mt-2">
               <CipherRain hex={cipherHex} />
             </div>
             <pre
-              className="mt-2 max-h-16 overflow-hidden border border-[#00F5FF]/10 bg-[#05070B] p-3 font-mono text-[11px] leading-relaxed break-all whitespace-pre-wrap text-[#00F5FF]/60"
+              className="mt-2 max-h-16 overflow-hidden border border-[#E8672E]/10 bg-[#0E0E10] p-3 font-mono text-[11px] leading-relaxed break-all whitespace-pre-wrap text-[#E8672E]/60"
               data-testid="cipher-preview-hex"
             >
               {cipherHex || "Start typing to see the encrypted output…"}
@@ -334,8 +336,8 @@ export default function Home() {
 
           {/* attachments */}
           <div className="mt-5">
-            <Label className="flex items-center gap-2 text-slate-300">
-              <Paperclip className="size-3.5 text-[#00F5FF]" /> Attachments (max {MAX_FILES} × 2 MB
+            <Label className="flex items-center gap-2 text-[#B8B3AA]">
+              <Paperclip className="size-3.5 text-[#E8672E]" /> Attachments (max {MAX_FILES} × 2 MB
               · paste or drop welcome)
             </Label>
             <input
@@ -344,7 +346,7 @@ export default function Home() {
               multiple
               data-testid="attachment-file-input"
               onChange={(e) => addFiles(e.target.files)}
-              className="mt-2 block w-full cursor-pointer border border-white/10 bg-[#05070B] p-2 font-mono text-xs text-slate-400 file:mr-3 file:border-0 file:bg-[#00F5FF]/15 file:px-3 file:py-1.5 file:font-mono file:text-[11px] file:text-[#00F5FF]"
+              className="mt-2 block w-full cursor-pointer border border-white/10 bg-[#0E0E10] p-2 font-mono text-xs text-[#6B6F76] file:mr-3 file:border-0 file:bg-[#E8672E]/15 file:px-3 file:py-1.5 file:font-mono file:text-[11px] file:text-[#E8672E]"
             />
             {files.length > 0 && (
               <ul className="mt-3 space-y-2" data-testid="attachment-list">
@@ -352,11 +354,11 @@ export default function Home() {
                   <li
                     key={`${f.name}-${i}`}
                     data-testid={`attachment-item-${i}`}
-                    className="flex items-center justify-between gap-3 border border-white/10 bg-[#05070B] px-3 py-2"
+                    className="flex items-center justify-between gap-3 border border-white/10 bg-[#0E0E10] px-3 py-2"
                   >
-                    <span className="truncate font-mono text-xs text-slate-300">{f.name}</span>
+                    <span className="truncate font-mono text-xs text-[#B8B3AA]">{f.name}</span>
                     <span className="flex shrink-0 items-center gap-3">
-                      <span className="font-mono text-[11px] text-slate-600">
+                      <span className="font-mono text-[11px] text-[#3D4048]">
                         {prettySize(f.size)}
                       </span>
                       <button
@@ -364,7 +366,7 @@ export default function Home() {
                         aria-label={`Remove ${f.name}`}
                         data-testid={`attachment-remove-${i}`}
                         onClick={() => setFiles(files.filter((_, j) => j !== i))}
-                        className="text-slate-500 transition-colors duration-200 hover:text-[#FF3B30]"
+                        className="glitch-hover text-[#555961] transition-colors duration-200 hover:text-[#7A2A2A]"
                       >
                         <Trash2 className="size-3.5" />
                       </button>
@@ -377,12 +379,12 @@ export default function Home() {
 
           <div className="mt-6 grid gap-5 sm:grid-cols-2">
             <div>
-              <Label className="flex items-center gap-2 text-slate-300">
-                <Timer className="size-3.5 text-[#00F5FF]" /> Self-destruct after
+              <Label className="flex items-center gap-2 text-[#B8B3AA]">
+                <Timer className="size-3.5 text-[#E8672E]" /> Self-destruct after
               </Label>
               <Select value={expiry} onValueChange={(v: string) => setExpiry(v)}>
                 <SelectTrigger
-                  className="mt-2 w-full border-white/10 bg-[#05070B] font-mono text-sm"
+                  className="mt-2 w-full border-white/10 bg-[#0E0E10] font-mono text-sm"
                   data-testid="expiry-select-trigger"
                 >
                   <SelectValue>{(v) => EXPIRY_LABELS[v as string]}</SelectValue>
@@ -402,8 +404,8 @@ export default function Home() {
             </div>
 
             <div>
-              <Label htmlFor="passphrase" className="flex items-center gap-2 text-slate-300">
-                <KeyRound className="size-3.5 text-[#00F5FF]" /> Passphrase (optional)
+              <Label htmlFor="passphrase" className="flex items-center gap-2 text-[#B8B3AA]">
+                <KeyRound className="size-3.5 text-[#E8672E]" /> Passphrase (optional)
               </Label>
               <div className="relative mt-2">
                 <Input
@@ -413,13 +415,13 @@ export default function Home() {
                   value={passphrase}
                   onChange={(e) => setPassphrase(e.target.value)}
                   placeholder="extra PBKDF2 layer"
-                  className="border-white/10 bg-[#05070B] pr-10 font-mono text-sm"
+                  className="border-white/10 bg-[#0E0E10] pr-10 font-mono text-sm"
                 />
                 <button
                   type="button"
                   data-testid="passphrase-visibility-toggle"
                   onClick={() => setShowPass((s) => !s)}
-                  className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-slate-500 transition-colors duration-200 hover:text-[#00F5FF]"
+                  className="glitch-hover absolute inset-y-0 right-0 flex w-10 items-center justify-center text-[#555961] transition-colors duration-200 hover:text-[#E8672E]"
                   aria-label="Toggle passphrase visibility"
                 >
                   {showPass ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -429,12 +431,12 @@ export default function Home() {
           </div>
 
           <div className="mt-5">
-            <Label className="flex items-center gap-2 text-slate-300">
-              <Eye className="size-3.5 text-[#00F5FF]" /> Allowed reads
+            <Label className="flex items-center gap-2 text-[#B8B3AA]">
+              <Eye className="size-3.5 text-[#E8672E]" /> Allowed reads
             </Label>
             <Select value={maxReads} onValueChange={(v: string) => setMaxReads(v)}>
               <SelectTrigger
-                className="mt-2 w-full border-white/10 bg-[#05070B] font-mono text-sm"
+                className="mt-2 w-full border-white/10 bg-[#0E0E10] font-mono text-sm"
                 data-testid="max-reads-select-trigger"
               >
                 <SelectValue>{(v) => `${v as string} read${v === "1" ? "" : "s"}`}</SelectValue>
@@ -450,7 +452,7 @@ export default function Home() {
           </div>
 
           <label
-            className="mt-6 flex cursor-pointer items-start gap-3 border border-[#FF3B30]/25 bg-[#2A0E13]/50 p-4"
+            className="mt-6 flex cursor-pointer items-start gap-3 border border-[#7A2A2A]/25 bg-[#1A0F0F]/50 p-4"
             data-testid="burn-toggle-row"
           >
             <Checkbox
@@ -460,10 +462,10 @@ export default function Home() {
               className="mt-0.5"
             />
             <span>
-              <span className="flex items-center gap-2 text-sm font-medium text-rose-200">
-                <Flame className="size-4 text-[#FF3B30]" /> Burn after reading
+              <span className="flex items-center gap-2 text-sm font-medium text-[#B88A8A]">
+                <Flame className="size-4 text-[#7A2A2A]" /> Burn after reading
               </span>
-              <span className="mt-1 block text-xs text-rose-300/70">
+              <span className="mt-1 block text-xs text-[#9A6B6B]/70">
                 The ciphertext is deleted from the database the moment it is opened once.
               </span>
             </span>
@@ -473,21 +475,21 @@ export default function Home() {
             data-testid="create-secret-button"
             disabled={(!text.trim() && files.length === 0) || create.isPending}
             onClick={() => create.mutate()}
-            className="mt-6 w-full bg-[#00F5FF] font-mono text-xs tracking-[0.18em] text-black uppercase transition-transform duration-200 hover:bg-[#5CFBFF] active:scale-[0.99]"
+            className="glitch-hover mt-6 w-full bg-[#E8672E] font-mono text-xs tracking-[0.18em] text-black uppercase duration-200 hover:bg-[#F07A3F] "
           >
-            {create.isPending ? "Encrypting…" : "Encrypt & share"}
+            {create.isPending ? <span className="cursor-blink">Encrypting</span> : "Seal and generate link"}
           </Button>
 
           {link && (
             <div
-              className="mt-6 border border-[#00F5FF]/30 bg-[#05070B] p-4"
+              className="mt-6 border border-[#E8672E]/30 bg-[#0E0E10] p-4"
               data-testid="secret-link-card"
             >
-              <p className="font-mono text-[11px] tracking-[0.2em] text-[#00F5FF]">
-                SHARE THIS LINK — IT CONTAINS THE ONLY KEY
+              <p className="font-mono text-[11px] tracking-[0.2em] text-[#E8672E]">
+                LINK FORGED // KEY IN FRAGMENT
               </p>
               <p
-                className="mt-3 font-mono text-xs break-all text-slate-300"
+                className="mt-3 font-mono text-xs break-all text-[#B8B3AA]"
                 data-testid="secret-link-value"
               >
                 {link}
@@ -502,7 +504,7 @@ export default function Home() {
                   onClick={() => copy(link, "Secret link")}
                   data-testid="copy-secret-link-button"
                   variant="outline"
-                  className="border-[#00F5FF]/40 font-mono text-xs text-[#00F5FF] hover:bg-[#00F5FF]/10"
+                  className="glitch-hover border-[#E8672E]/40 font-mono text-xs text-[#E8672E] hover:bg-[#E8672E]/10"
                 >
                   <Copy className="mr-2 size-3.5" /> Copy link
                 </Button>
@@ -512,15 +514,15 @@ export default function Home() {
                       <Button
                         variant="outline"
                         data-testid="show-qr-button"
-                        className="border-white/15 font-mono text-xs text-slate-200 hover:bg-white/5"
+                        className="glitch-hover glitch-hover border-white/15 font-mono text-xs text-[#D4CFC6] hover:bg-white/5"
                       />
                     }
                   >
                     <QrCode className="mr-2 size-3.5" /> Show QR
                   </DialogTrigger>
-                  <DialogContent data-testid="qr-dialog" className="bg-[#11141E]">
+                  <DialogContent data-testid="qr-dialog" className="bg-[#17171A]">
                     <DialogHeader>
-                      <DialogTitle className="font-heading">Scan to open</DialogTitle>
+                      <DialogTitle className="font-mono">Scan to open</DialogTitle>
                       <DialogDescription>
                         Drawn in this tab. The link — and its key — never reached a QR service.
                       </DialogDescription>
@@ -533,7 +535,7 @@ export default function Home() {
                 <Link
                   to="/share-preview"
                   data-testid="share-preview-link"
-                  className="flex items-center border border-white/15 px-3 py-1.5 font-mono text-xs text-slate-400 transition-colors duration-200 hover:border-[#00F5FF]/40 hover:text-[#00F5FF]"
+                  className="flex items-center border border-white/15 px-3 py-1.5 font-mono text-xs text-[#6B6F76] transition-colors duration-200 hover:border-[#E8672E]/40 hover:text-[#E8672E]"
                 >
                   Preview the unfurl
                 </Link>
@@ -541,10 +543,10 @@ export default function Home() {
 
               {receiptUrl && (
                 <div className="mt-5 border-t border-white/10 pt-4" data-testid="receipt-block">
-                  <p className="flex items-center gap-2 font-mono text-[11px] tracking-[0.2em] text-slate-400">
-                    <Receipt className="size-3.5 text-[#00F5FF]" /> YOUR PRIVATE READ RECEIPT
+                  <p className="flex items-center gap-2 font-mono text-[11px] tracking-[0.2em] text-[#6B6F76]">
+                    <Receipt className="size-3.5 text-[#E8672E]" /> YOUR PRIVATE READ RECEIPT
                   </p>
-                  <p className="mt-2 text-xs text-slate-500">
+                  <p className="mt-2 text-xs text-[#555961]">
                     Keep this for yourself. It shows only <em>when</em> the note was opened — never
                     by whom.
                   </p>
@@ -552,7 +554,7 @@ export default function Home() {
                     <Link
                       to={`/r/${receiptUrl.split("/r/")[1]}`}
                       data-testid="open-receipt-link"
-                      className="border border-white/15 px-3 py-1.5 font-mono text-[11px] text-slate-200 transition-colors duration-200 hover:border-[#00F5FF]/40 hover:text-[#00F5FF]"
+                      className="border border-white/15 px-3 py-1.5 font-mono text-[11px] text-[#D4CFC6] transition-colors duration-200 hover:border-[#E8672E]/40 hover:text-[#E8672E]"
                     >
                       Open status page
                     </Link>
@@ -560,7 +562,7 @@ export default function Home() {
                       type="button"
                       data-testid="copy-receipt-link-button"
                       onClick={() => copy(receiptUrl, "Receipt link")}
-                      className="border border-white/15 px-3 py-1.5 font-mono text-[11px] text-slate-400 transition-colors duration-200 hover:text-white"
+                      className="glitch-hover border border-white/15 px-3 py-1.5 font-mono text-[11px] text-[#6B6F76] transition-colors duration-200 hover:text-white"
                     >
                       Copy receipt link
                     </button>
@@ -573,18 +575,18 @@ export default function Home() {
       </div>
 
       <section
-        className="mt-12 border border-white/10 bg-[#11141E] p-5"
+        className="mt-12 border border-white/10 bg-[#17171A] p-5"
         data-testid="cli-section"
       >
-        <p className="font-mono text-[11px] tracking-[0.22em] text-slate-500">COMMAND LINE</p>
-        <h3 className="mt-2 font-heading text-lg font-semibold text-white">
+        <p className="font-mono text-[11px] tracking-[0.22em] text-[#555961]">COMMAND LINE</p>
+        <h3 className="mt-2 font-mono text-lg font-semibold text-white">
           Send from your terminal
         </h3>
-        <p className="mt-2 text-sm text-slate-400">
+        <p className="mt-2 text-sm text-[#6B6F76]">
           Pipe any secret through curl. The key never leaves your machine.
         </p>
         <pre
-          className="mt-4 overflow-x-auto border border-[#00F5FF]/10 bg-[#05070B] p-4 font-mono text-xs leading-relaxed text-[#C8FDFF]"
+          className="mt-4 overflow-x-auto border border-[#E8672E]/10 bg-[#0E0E10] p-4 font-mono text-xs leading-relaxed text-[#ECE7DC]"
           data-testid="cli-snippet"
         >
           {CLI_SNIPPET}
@@ -593,7 +595,7 @@ export default function Home() {
           type="button"
           data-testid="copy-cli-snippet"
           onClick={() => copy(CLI_SNIPPET, "Terminal snippet")}
-          className="mt-3 border border-[#00F5FF]/30 px-3 py-1.5 font-mono text-[11px] text-[#00F5FF] transition-colors duration-200 hover:bg-[#00F5FF]/10"
+          className="glitch-hover mt-3 border border-[#E8672E]/30 px-3 py-1.5 font-mono text-[11px] text-[#E8672E] transition-colors duration-200 hover:bg-[#E8672E]/10"
         >
           Copy to clipboard
         </button>
