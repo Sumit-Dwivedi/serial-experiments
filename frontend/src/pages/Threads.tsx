@@ -54,7 +54,7 @@ export default function Threads() {
       setOpen(false);
       setSavedToken({ id: thread.id, token: ownerToken });
       qc.invalidateQueries({ queryKey: ["threads"] });
-      toast.success("Thread posted anonymously.");
+      toast.success("Thread dropped into the void.");
     },
     onError: (e) =>
       toast.error(
@@ -85,13 +85,13 @@ export default function Threads() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="font-mono text-[11px] tracking-[0.32em] text-[#00F5FF]">
-            ZERO-IDENTITY DISCUSSION
+            DEAD DROP FORUM
           </p>
           <h1
-            className="mt-3 font-heading text-3xl font-bold tracking-tight text-white"
+            className="mt-3 max-w-xl font-heading text-3xl font-bold tracking-tight text-white"
             data-testid="threads-heading"
           >
-            Threads
+            Start a conversation nobody can trace.
           </h1>
         </div>
         <Button
@@ -132,7 +132,7 @@ export default function Threads() {
             onClick={() => create.mutate()}
             className="mt-4 bg-[#00F5FF] font-mono text-xs tracking-[0.18em] text-black uppercase hover:bg-[#5CFBFF]"
           >
-            {working ? "Solving proof of work…" : create.isPending ? "Posting…" : "Submit"}
+            {working ? "Solving proof of work…" : create.isPending ? "Posting…" : "Drop the thread"}
           </Button>
         </div>
       )}
@@ -164,7 +164,7 @@ export default function Threads() {
         )}
         {!threads.isLoading && list.length === 0 && (
           <li className="font-mono text-xs text-slate-500" data-testid="threads-empty">
-            No threads yet. Start the first one.
+            Nothing here yet. Drop the first dead letter.
           </li>
         )}
         {list.map((t, i) => (

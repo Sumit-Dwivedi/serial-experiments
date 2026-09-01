@@ -50,3 +50,12 @@ Note: CSP/security headers are served on backend responses; the Vite dev server 
 - Rate limits (salted rotating IP hash, in-memory): threads 3/10min, thread replies 10/5min, wall posts 5/10min, wall replies 15/5min.
 - Note: recursive reply rendering is split across components/ReplyNode.tsx + components/ReplyChildren.tsx — a self-recursive JSX component in one file crashes the dev-server source transform.
 - Live API smoke test: `python backend/tests/test_threads_api.py [base_url]` (9/9 passing).
+
+## Launch polish (this session)
+- Navbar: GitHub source link (placeholder repo URL — swap in `Navbar.tsx`).
+- Home: "ENCRYPTION ENGINE" eyebrow + new headline, live debounced "Cipher preview" hex dump (cosmetic, separate throwaway key), copyable CLI snippet section using `VITE_APP_URL` (falls back to window.location.origin).
+- ViewSecret: headings "Someone left you a secret." / "The seal is broken." + viral watermark CTA at page bottom.
+- Wall / Threads / HowItWorks: new eyebrows, headings, subheads; verb button labels; atmospheric empty states; cyberpunk-terse toasts.
+- ThreadDetail: pulsing emerald dot when open, `[SEALED]` badge when closed.
+- index.html: OG/Twitter cards + /og-card.png (1200x630).
+- Backend: `GET /api/health` → {"status":"ok"} for uptime probes. Analytics = Cloudflare Web Analytics (no code); see memory/OBSERVABILITY.md.

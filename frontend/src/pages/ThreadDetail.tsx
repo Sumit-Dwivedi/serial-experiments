@@ -62,7 +62,7 @@ export default function ThreadDetail() {
     mutationFn: () => apiPatch(`/threads/${id}/close`, { owner_token: ownerToken }),
     onSuccess: () => {
       refresh();
-      toast.success("Thread closed. No new replies can be added.");
+      toast.success("Sealed. No new replies can be added.");
     },
     onError: () => toast.error("Could not close the thread."),
   });
@@ -93,9 +93,16 @@ export default function ThreadDetail() {
       {t && (
         <>
           <h1
-            className="mt-4 font-heading text-2xl font-bold tracking-tight text-white sm:text-3xl"
+            className="mt-4 flex items-center gap-3 font-heading text-2xl font-bold tracking-tight text-white sm:text-3xl"
             data-testid="thread-title"
           >
+            {!closed && (
+              <span
+                data-testid="thread-live-dot"
+                aria-hidden="true"
+                className="inline-block size-[6px] shrink-0 animate-pulse rounded-full bg-emerald-400 shadow-[0_0_10px_2px_rgba(52,211,153,0.6)]"
+              />
+            )}
             {t.title}
           </h1>
           <p className="mt-2 font-mono text-[11px] text-slate-500" data-testid="thread-meta">
@@ -105,7 +112,7 @@ export default function ThreadDetail() {
               data-testid="thread-status-badge"
               className={closed ? "text-rose-400" : "text-emerald-400"}
             >
-              [{t.status}]
+              {closed ? "[SEALED]" : "[open]"}
             </span>
           </p>
           {t.body && (
@@ -126,7 +133,7 @@ export default function ThreadDetail() {
               className="mt-5 border-[#FF3B30]/40 font-mono text-xs text-[#FF3B30] hover:bg-[#FF3B30]/10"
             >
               <Lock className="mr-2 size-3.5" />
-              {close.isPending ? "Closing…" : "Close thread"}
+              {close.isPending ? "Sealing…" : "Seal this thread"}
             </Button>
           )}
 

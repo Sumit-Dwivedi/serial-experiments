@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ClipboardEvent } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -54,6 +54,24 @@ const EXPIRY_LABELS: Record<string, string> = {
 const MAX_FILE_BYTES = 2 * 1024 * 1024;
 const MAX_FILES = 3;
 
+/** Deploy-time override; falls back to whatever origin the app is served from. */
+const APP_ORIGIN = import.meta.env.VITE_APP_URL || window.location.origin;
+
+const CLI_SNIPPET = `# Generate a key, encrypt locally, post ciphertext
+SECRET="my-api-key-abc123"
+KEY=$(openssl rand -base64 32)
+IV=$(openssl rand -base64 12)
+CIPHER=$(echo -n "$SECRET" | openssl enc -aes-256-gcm \\
+  -K $(echo -n "$KEY" | base64 -d | xxd -p) \\
+  -iv $(echo -n "$IV" | base64 -d | xxd -p) \\
+  -nosalt | base64)
+# Post to VAULT_ZERO
+ID=$(curl -s -X POST ${APP_ORIGIN}/api/secrets \\
+  -H "Content-Type: application/json" \\
+  -d "{\\"cipher_text\\": \\"$CIPHER\\", \\"iv\\": \\"$IV\\"}" \\
+  | jq -r '.id')
+echo "${APP_ORIGIN}/v/$ID#key=$KEY"`;
+
 const prettySize = (n: number) =>
   n < 1024 ? `${n} B` : n < 1024 * 1024 ? `${(n / 1024).toFixed(0)} KB` : `${(n / 1048576).toFixed(1)} MB`;
 
@@ -69,7 +87,48 @@ export default function Home() {
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
+  const [cipherHex, setCipherHex] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const previewKey = useRef<CryptoKey | null>(null);
+
+  /**
+   * Live hex dump of the draft, encrypted a second time purely for display. Debounced at
+   * 300ms and completely separate from the submission flow, which mints its own key.
+   */
+  useEffect(() => {
+    if (!text) {
+      setCipherHex("");
+      return;
+    }
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        if (!previewKey.current) {
+          previewKey.current = await crypto.subtle.generateKey(
+            { name: "AES-GCM", length: 256 },
+            false,
+            ["encrypt"],
+          );
+        }
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const buf = await crypto.subtle.encrypt(
+          { name: "AES-GCM", iv },
+          previewKey.current,
+          new TextEncoder().encode(text),
+        );
+        const hex = Array.from(new Uint8Array(buf))
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
+        if (!cancelled) setCipherHex(hex.length > 256 ? `${hex.slice(0, 256)}…` : hex);
+      } catch {
+        if (!cancelled) setCipherHex("");
+      }
+    }, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [text]);
 
   const addFiles = (picked: FileList | File[] | null) => {
     if (!picked) return;
@@ -149,7 +208,7 @@ export default function Home() {
       setText("");
       setPassphrase("");
       setFiles([]);
-      toast.success("Encrypted locally. Only ciphertext was uploaded.");
+      toast.success("Link forged. The key is in the fragment.");
     },
     onError: () => toast.error("Could not store the encrypted payload. Try again."),
   });
@@ -168,20 +227,17 @@ export default function Home() {
       <div className="grid gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-14">
         <section className="lg:pt-6">
           <p className="font-mono text-[11px] tracking-[0.32em] text-[#00F5FF]">
-            ZERO-KNOWLEDGE · AES-256-GCM
+            ENCRYPTION ENGINE
           </p>
           <h1
-            className="mt-5 font-heading text-4xl leading-[1.05] font-bold tracking-tight text-white sm:text-5xl"
+            className="mt-5 font-heading text-4xl leading-[1.05] font-extrabold tracking-tighter text-white sm:text-5xl"
             data-testid="home-heading"
           >
-            Write anything.
-            <br />
-            Leave <span className="text-[#00F5FF]">no trace</span> behind.
+            Whisper something into the <span className="text-[#00F5FF]">void</span>.
           </h1>
-          <p className="mt-5 max-w-md text-[15px] leading-relaxed text-slate-400">
-            Your text and files are encrypted inside this browser tab before anything is sent.
-            The decryption key rides in the link fragment — a part of the URL browsers never
-            transmit. We store ciphertext and nothing else: no account, no IP, no user agent.
+          <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-slate-400">
+            Client-side AES-256-GCM. The key lives in the link. We never see your data — not
+            even by accident.
           </p>
 
           <div className="mt-8 space-y-3">
@@ -258,6 +314,19 @@ export default function Home() {
           <p className="mt-2 font-mono text-[11px] text-slate-600" data-testid="char-counter">
             {text.length} chars · entropy source: crypto.getRandomValues
           </p>
+
+          {/* Cosmetic only: encrypts a copy of the draft purely to show the ciphertext. */}
+          <details className="mt-3" data-testid="cipher-preview-toggle">
+            <summary className="cursor-pointer font-mono text-[11px] tracking-wider text-slate-500 transition-colors duration-200 hover:text-[#00F5FF]">
+              ▸ Cipher preview
+            </summary>
+            <pre
+              className="mt-2 max-h-24 overflow-hidden border border-[#00F5FF]/10 bg-[#05070B] p-3 font-mono text-[11px] leading-relaxed break-all whitespace-pre-wrap text-[#00F5FF]/60"
+              data-testid="cipher-preview-hex"
+            >
+              {cipherHex || "Start typing to see the encrypted output…"}
+            </pre>
+          </details>
 
           {/* attachments */}
           <div className="mt-5">
@@ -402,7 +471,7 @@ export default function Home() {
             onClick={() => create.mutate()}
             className="mt-6 w-full bg-[#00F5FF] font-mono text-xs tracking-[0.18em] text-black uppercase transition-transform duration-200 hover:bg-[#5CFBFF] active:scale-[0.99]"
           >
-            {create.isPending ? "Encrypting…" : "Encrypt & generate link"}
+            {create.isPending ? "Encrypting…" : "Encrypt & share"}
           </Button>
 
           {link && (
@@ -491,6 +560,33 @@ export default function Home() {
           )}
         </section>
       </div>
+
+      <section
+        className="mt-12 border border-white/10 bg-[#11141E] p-5"
+        data-testid="cli-section"
+      >
+        <p className="font-mono text-[11px] tracking-[0.22em] text-slate-500">COMMAND LINE</p>
+        <h3 className="mt-2 font-heading text-lg font-semibold text-white">
+          Send from your terminal
+        </h3>
+        <p className="mt-2 text-sm text-slate-400">
+          Pipe any secret through curl. The key never leaves your machine.
+        </p>
+        <pre
+          className="mt-4 overflow-x-auto border border-[#00F5FF]/10 bg-[#05070B] p-4 font-mono text-xs leading-relaxed text-[#C8FDFF]"
+          data-testid="cli-snippet"
+        >
+          {CLI_SNIPPET}
+        </pre>
+        <button
+          type="button"
+          data-testid="copy-cli-snippet"
+          onClick={() => copy(CLI_SNIPPET, "Terminal snippet")}
+          className="mt-3 border border-[#00F5FF]/30 px-3 py-1.5 font-mono text-[11px] text-[#00F5FF] transition-colors duration-200 hover:bg-[#00F5FF]/10"
+        >
+          Copy to clipboard
+        </button>
+      </section>
     </PageShell>
   );
 }

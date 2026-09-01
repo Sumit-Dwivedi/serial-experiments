@@ -115,7 +115,7 @@ export default function ViewSecret() {
     onSuccess: () => {
       setDestroyed(true);
       sessionStorage.removeItem(stashKey);
-      toast.success("Destroyed. The ciphertext is gone from the server.");
+      toast.success("Wiped. No trace remains.");
     },
     onError: () => toast.error("Could not destroy it — it may already be gone."),
   });
@@ -132,7 +132,7 @@ export default function ViewSecret() {
           className="mt-4 font-heading text-3xl font-bold tracking-tight text-white sm:text-4xl"
           data-testid="view-secret-heading"
         >
-          {plain !== null ? "Payload decrypted" : "Locked payload detected"}
+          {plain !== null ? "The seal is broken." : "Someone left you a secret."}
         </h1>
 
         {missing && (
@@ -320,6 +320,25 @@ export default function ViewSecret() {
             )}
           </motion.div>
         )}
+
+        <p className="mt-12 text-center font-mono text-[11px] text-slate-600">
+          Encrypted end-to-end by{" "}
+          <a
+            href="/"
+            className="text-[#00F5FF]/50 transition-colors duration-200 hover:text-[#00F5FF]"
+            data-testid="viral-cta"
+          >
+            VAULT_ZERO
+          </a>{" "}
+          ·{" "}
+          <a
+            href="/"
+            data-testid="viral-cta-secondary"
+            className="text-slate-500 transition-colors duration-200 hover:text-slate-300"
+          >
+            Send your own zero-trace message →
+          </a>
+        </p>
       </div>
     </PageShell>
   );

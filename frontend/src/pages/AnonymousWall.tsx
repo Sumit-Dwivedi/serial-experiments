@@ -67,7 +67,7 @@ export default function AnonymousWall() {
     onSuccess: () => {
       setBody("");
       qc.invalidateQueries({ queryKey: ["wall"] });
-      toast.success("Posted anonymously. No identity was attached.");
+      toast.success("Transmitted anonymously. No identity attached.");
     },
     onError: (e) =>
       toast.error(
@@ -87,17 +87,16 @@ export default function AnonymousWall() {
   return (
     <PageShell>
       <p className="font-mono text-[11px] tracking-[0.32em] text-[#00F5FF]">
-        ZERO-METADATA PUBLIC FEED
+        GHOST FREQUENCY
       </p>
       <h1
         className="mt-4 font-heading text-3xl font-bold tracking-tight text-white sm:text-4xl"
         data-testid="wall-heading"
       >
-        The anonymous wall
+        Speak without a name.
       </h1>
       <p className="mt-4 max-w-xl text-[15px] text-slate-400">
-        Posts carry a throwaway ghost tag and nothing else — no account, no IP, no fingerprint.
-        Everything here evaporates after 7 days.
+        No account. No IP. No fingerprint. Everything here evaporates.
       </p>
 
       <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.4fr)]">
@@ -152,7 +151,7 @@ export default function AnonymousWall() {
             className="mt-4 w-full bg-[#00F5FF] font-mono text-xs tracking-[0.18em] text-black uppercase hover:bg-[#5CFBFF]"
           >
             <Send className="mr-2 size-3.5" />
-            {powing ? "Solving proof of work…" : publish.isPending ? "Posting…" : "Post to the wall"}
+            {powing ? "Solving proof of work…" : publish.isPending ? "Posting…" : "Post to the void"}
           </Button>
         </section>
 

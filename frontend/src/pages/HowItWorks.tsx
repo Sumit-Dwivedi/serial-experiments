@@ -34,14 +34,18 @@ export default function HowItWorks() {
   return (
     <PageShell>
       <p className="font-mono text-[11px] tracking-[0.32em] text-[#00F5FF]">
-        SECURITY ARCHITECTURE LEDGER
+        UNDER THE HOOD
       </p>
       <h1
         className="mt-4 font-heading text-3xl font-bold tracking-tight text-white sm:text-4xl"
         data-testid="how-it-works-heading"
       >
-        Why nobody — including us — can read your note
+        Math you can verify. Code you can audit.
       </h1>
+      <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-slate-400">
+        Every claim on this page is backed by open-source code. Don't trust us — read it
+        yourself.
+      </p>
 
       <div className="mt-12 grid gap-6 lg:grid-cols-2">
         <ol className="space-y-4">
