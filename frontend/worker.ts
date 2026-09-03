@@ -1,6 +1,8 @@
 // Serves the static SPA build and proxies /api/* to the FastAPI backend (Render),
 // so the browser only ever talks to this Worker's origin — matching the frontend's
 // "relative /api path, single origin" convention (see src/lib/api.ts).
+//
+// (trigger: force Cloudflare to pick up the prod-branch production setting)
 interface Env {
   ASSETS: Fetcher;
   BACKEND_URL: string;
