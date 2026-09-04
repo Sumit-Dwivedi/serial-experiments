@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Download, Plus } from "lucide-react";
+import { Download, Plus, Search } from "lucide-react";
 
 import PageShell from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
@@ -16,15 +16,30 @@ import { ago } from "@/lib/time";
 export default function Threads() {
   const qc = useQueryClient();
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [debounced, setDebounced] = useState("");
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [working, setWorking] = useState(false);
   const [savedToken, setSavedToken] = useState<{ id: string; token: string } | null>(null);
 
+  // 200ms debounce keeps typing snappy without a request per keystroke.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setDebounced(search.trim());
+      setPage(1);
+    }, 200);
+    return () => clearTimeout(t);
+  }, [search]);
+
   const threads = useQuery({
-    queryKey: ["threads", page],
-    queryFn: () => apiGet<ThreadSummary[]>(`/threads?page=${page}&limit=30`),
+    queryKey: ["threads", page, debounced],
+    queryFn: () =>
+      apiGet<ThreadSummary[]>(
+        `/threads?page=${page}&limit=30&q=${encodeURIComponent(debounced)}`,
+      ),
+    placeholderData: (prev) => prev,
     retry: false,
   });
 
@@ -103,6 +118,28 @@ export default function Threads() {
         </Button>
       </div>
 
+      <div className="relative mt-6 max-w-md" data-testid="thread-search">
+        <Search className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-[#555961]" />
+        <input
+          data-testid="thread-search-input"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Filter by title…"
+          aria-label="Search threads by title"
+          className="w-full border border-white/10 bg-[#0E0E10] py-2 pr-16 pl-9 font-mono text-xs text-[#ECE7DC] outline-none transition-colors duration-200 placeholder:text-[#3D4048] focus-visible:border-[#E8672E]/50"
+        />
+        {search && (
+          <button
+            type="button"
+            data-testid="thread-search-clear"
+            onClick={() => setSearch("")}
+            className="glitch-hover absolute top-1/2 right-3 -translate-y-1/2 font-mono text-[11px] tracking-wider text-[#555961] uppercase transition-none hover:text-[#E8672E]"
+          >
+            clear
+          </button>
+        )}
+      </div>
+
       {open && (
         <div
           className="mt-6 border border-white/10 bg-[#17171A] p-5"
@@ -164,7 +201,9 @@ export default function Threads() {
         )}
         {!threads.isLoading && list.length === 0 && (
           <li className="font-mono text-xs text-[#555961]" data-testid="threads-empty">
-            The line is quiet. Nothing has been transmitted yet.
+            {debounced
+              ? `No thread title matches "${debounced}".`
+              : "The line is quiet. Nothing has been transmitted yet."}
           </li>
         )}
         {list.map((t, i) => (

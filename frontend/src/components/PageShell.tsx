@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 
 export default function PageShell({ children }: { children: ReactNode }) {
@@ -32,8 +33,31 @@ export default function PageShell({ children }: { children: ReactNode }) {
         className="relative z-10 border-t border-[#213A52]/30 py-6"
         data-testid="site-footer"
       >
-        <p className="mx-auto max-w-7xl px-4 font-mono text-[11px] tracking-wider text-[#555961] sm:px-6 lg:px-8">
-          LAYER 07 // NO ACCOUNTS · NO COOKIES · NO IP LOGS · KEYS NEVER LEAVE THIS MACHINE
+        <p className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-2 px-4 font-mono text-[11px] tracking-wider text-[#555961] sm:px-6 lg:px-8">
+          <span>
+            LAYER 07 // NO ACCOUNTS · NO COOKIES · NO IP LOGS · KEYS NEVER LEAVE THIS MACHINE
+          </span>
+          <Link
+            to="/how-it-works"
+            data-testid="footer-how-it-works-link"
+            className="glitch-hover uppercase transition-none hover:text-[#E8672E]"
+          >
+            Architecture
+          </Link>
+          <Link
+            to="/terms"
+            data-testid="footer-terms-link"
+            className="glitch-hover uppercase transition-none hover:text-[#E8672E]"
+          >
+            Acceptable use
+          </Link>
+          <Link
+            to="/report"
+            data-testid="footer-report-link"
+            className="glitch-hover uppercase transition-none hover:text-[#E8672E]"
+          >
+            Report abuse
+          </Link>
         </p>
       </footer>
     </div>

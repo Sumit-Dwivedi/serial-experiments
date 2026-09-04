@@ -103,3 +103,18 @@ export interface ThreadDetailData extends ThreadSummary {
   body: string;
   replies: ThreadReply[];
 }
+
+/** Mirrors backend/models/report.py */
+export type ReportTargetType = "secret" | "wall_post" | "thread" | "reply";
+export type ReportReason = "illegal" | "harassment" | "spam" | "other";
+
+export interface AbuseReport {
+  id: string;
+  target_type: ReportTargetType;
+  target_id: string;
+  reason: ReportReason;
+  note: string;
+  created_at: string;
+  status: "pending" | "resolved";
+  resolved_at: string | null;
+}

@@ -1,4 +1,5 @@
 """Anonymous HN-style threads. No accounts, no IPs, no raw tokens — only hashes."""
+import re
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional
@@ -52,15 +53,26 @@ async def thread_challenge(kind: str = Query("reply")):
 
 
 @router.get("/threads", response_model=List[ThreadSummary])
-async def list_threads(page: int = Query(1, ge=1), limit: int = Query(30, ge=1, le=100)):
+async def list_threads(
+    page: int = Query(1, ge=1),
+    limit: int = Query(30, ge=1, le=100),
+    q: str = Query("", max_length=120),
+):
     now = datetime.now(timezone.utc)
     # Cascade: drop replies whose thread has expired before listing.
     async for dead in db.threads.find({"expires_at": {"$lte": now}}, {"id": 1}):
         await db.replies.delete_many({"thread_id": dead["id"]})
     await db.threads.delete_many({"expires_at": {"$lte": now}})
 
+    # Title-only, case-insensitive substring match. Regex is escaped so a pasted "?" or
+    # "(" can't turn into a pattern (or a ReDoS).
+    query: dict = {}
+    term = q.strip()
+    if term:
+        query["title"] = {"$regex": re.escape(term), "$options": "i"}
+
     docs = (
-        await db.threads.find()
+        await db.threads.find(query)
         .sort("last_activity_at", -1)
         .skip((page - 1) * limit)
         .limit(limit)

@@ -8,6 +8,8 @@ import ReceiptStatus from "@/pages/ReceiptStatus";
 import Threads from "@/pages/Threads";
 import ThreadDetail from "@/pages/ThreadDetail";
 import SharePreview from "@/pages/SharePreview";
+import Terms from "@/pages/Terms";
+import Report from "@/pages/Report";
 import BootSequence from "@/components/BootSequence";
 
 // One <Route> per page in src/pages; BrowserRouter already wraps this in main.tsx.
@@ -24,6 +26,8 @@ export default function App() {
         <Route path="/wall" element={<AnonymousWall />} />
         <Route path="/how-it-works" element={<HowItWorks />} />
         <Route path="/share-preview" element={<SharePreview />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/report" element={<Report />} />
         <Route path="*" element={<Home />} />
       </Routes>
       <Toaster position="bottom-right" richColors />

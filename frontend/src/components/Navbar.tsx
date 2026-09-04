@@ -7,6 +7,7 @@ const LINKS = [
   { name: "Anonymous Wall", short: "Wall", path: "/wall", testId: "nav-anon-wall" },
   { name: "Threads", short: "Threads", path: "/threads", testId: "nav-threads" },
   { name: "Architecture", short: "Docs", path: "/how-it-works", testId: "nav-how-it-works" },
+  { name: "Terms", short: "Terms", path: "/terms", testId: "nav-terms" },
 ];
 
 export default function Navbar() {
