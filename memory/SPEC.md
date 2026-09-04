@@ -83,3 +83,7 @@ Note: CSP/security headers are served on backend responses; the Vite dev server 
 - `POST /api/reports`: no auth, rate-limited 5/10min via lib/rate_limit.py client_hash; strips URL/`#key` down to the bare id; stores {id, target_type, target_id, reason, note, created_at, status, resolved_at}. Never auto-deletes content.
 - TTL index on `reports.resolved_at` (30 days) — pending reports (null) never expire.
 - Admin API (no UI), gated by `X-Admin-Token` vs backend/.env `ADMIN_TOKEN` (blank ⇒ everything 403): GET /api/admin/reports, POST /api/admin/reports/{id}/resolve, DELETE /api/admin/wall/{post_id}, DELETE /api/admin/threads/{thread_id} (cascades replies).
+
+## Thread search
+- `GET /api/threads?q=` — title-only, case-insensitive, regex-escaped substring match (page/limit unchanged).
+- Threads page has a debounced (200ms) filter box with a clear button; results keep the previous list while refetching, and the empty state names the term when nothing matches.
