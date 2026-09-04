@@ -61,3 +61,14 @@ async def delete_thread(thread_id: str, x_admin_token: str | None = Header(defau
         raise HTTPException(status_code=404, detail="Thread not found.")
     await db.replies.delete_many({"thread_id": thread_id})
     return {"deleted": thread_id}
+
+
+@router.delete("/secrets/{secret_id}")
+async def delete_secret(secret_id: str, x_admin_token: str | None = Header(default=None)):
+    """Removes a reported secret without needing to decrypt it — same as a user's own
+    burn, just triggerable by the operator instead of the link holder."""
+    _require_admin(x_admin_token)
+    res = await db.secrets.delete_one({"id": secret_id})
+    if res.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Secret not found.")
+    return {"deleted": secret_id}
