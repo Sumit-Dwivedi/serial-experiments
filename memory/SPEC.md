@@ -77,3 +77,9 @@ Note: CSP/security headers are served on backend responses; the Vite dev server 
 
 ## Boot sequence
 - `components/BootSequence.tsx`, mounted in App.tsx: one-time terminal boot log (8 lines, ~1.6s) with scanlines and a blinking cursor. Flag `boot_sequence_seen` in localStorage; skipped entirely under prefers-reduced-motion; dismissible via click, any key, or the SKIP button; auto-dismisses when finished.
+
+## Terms + abuse reporting
+- `/terms` (Acceptable Use) and `/report` (public report form), linked from the navbar and footer. Contact placeholder `abuse@example.com` in `pages/Terms.tsx` — REPLACE before merging.
+- `POST /api/reports`: no auth, rate-limited 5/10min via lib/rate_limit.py client_hash; strips URL/`#key` down to the bare id; stores {id, target_type, target_id, reason, note, created_at, status, resolved_at}. Never auto-deletes content.
+- TTL index on `reports.resolved_at` (30 days) — pending reports (null) never expire.
+- Admin API (no UI), gated by `X-Admin-Token` vs backend/.env `ADMIN_TOKEN` (blank ⇒ everything 403): GET /api/admin/reports, POST /api/admin/reports/{id}/resolve, DELETE /api/admin/wall/{post_id}, DELETE /api/admin/threads/{thread_id} (cascades replies).

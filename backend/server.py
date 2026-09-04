@@ -48,6 +48,8 @@ async def lifespan(app: FastAPI):
     await db.threads.create_index("expires_at", expireAfterSeconds=0)
     await db.threads.create_index("last_activity_at")
     await db.replies.create_index("thread_id")
+    # Resolved reports self-expire after 30 days; pending ones (resolved_at null) never do.
+    await db.reports.create_index("resolved_at", expireAfterSeconds=30 * 24 * 3600)
     yield
     client.close()
 
@@ -103,10 +105,14 @@ async def get_status_checks():
 from routers.secrets import router as secrets_router
 from routers.wall import router as wall_router
 from routers.threads import router as threads_router
+from routers.reports import router as reports_router
+from routers.admin import router as admin_router
 
 api_router.include_router(secrets_router)
 api_router.include_router(wall_router)
 api_router.include_router(threads_router)
+api_router.include_router(reports_router)
+api_router.include_router(admin_router)
 
 # Include the router in the main app
 app.include_router(api_router)
