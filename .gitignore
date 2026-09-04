@@ -4,6 +4,10 @@
 .idea/
 .vscode/
 
+# Local-only notes: deployment runbook, postmortem writeup, session debriefs.
+# Kept on-machine only — not meant for the public repo.
+/docs/
+
 # Dependencies
 node_modules/
 /node_modules
