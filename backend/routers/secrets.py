@@ -2,9 +2,10 @@
 import secrets as pysecrets
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 
 from lib.db import db
+from lib.rate_limit import allow, client_hash
 from models.vault import (
     Attachment,
     SecretCreate,
@@ -33,7 +34,9 @@ async def _load(secret_id: str) -> dict:
 
 
 @router.post("/secrets", response_model=SecretCreated, status_code=201)
-async def create_secret(data: SecretCreate):
+async def create_secret(data: SecretCreate, request: Request):
+    if not allow("secrets_create", client_hash(request), limit=10, window_seconds=600):
+        raise HTTPException(status_code=429, detail="Too many secrets created. Try again shortly.")
     doc = new_secret_doc(data)
     await db.secrets.insert_one(dict(doc))
     token = pysecrets.token_urlsafe(16)
@@ -73,9 +76,11 @@ CLAIM_GRACE_MINUTES = 5
 
 
 @router.get("/secrets/{secret_id}", response_model=SecretPayload)
-async def claim_secret(secret_id: str):
+async def claim_secret(secret_id: str, request: Request):
     """Hands over the ciphertext WITHOUT deleting it, so a refresh or a crash can't
     destroy an unread secret. Consumes one read and returns a burn token."""
+    if not allow("secrets_claim", client_hash(request), limit=20, window_seconds=600):
+        raise HTTPException(status_code=429, detail="Too many attempts. Try again shortly.")
     doc = await _load(secret_id)
 
     reads_left = doc.get("reads_left", 1)
