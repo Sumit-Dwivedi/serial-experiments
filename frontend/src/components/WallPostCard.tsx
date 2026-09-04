@@ -43,7 +43,12 @@ export default function WallPostCard({ post, offset }: { post: WallPost; offset:
       qc.invalidateQueries({ queryKey: ["wall"] });
       toast.success("Replied anonymously.");
     },
-    onError: () => toast.error("Could not post that reply."),
+    onError: (e) =>
+      toast.error(
+        e instanceof Error && e.message.includes("429")
+          ? "Too many replies. Slow down a moment."
+          : "Could not post that reply.",
+      ),
   });
 
   return (

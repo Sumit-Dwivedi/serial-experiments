@@ -73,7 +73,9 @@ export default function AnonymousWall() {
       toast.error(
         e instanceof Error && e.message.includes("400")
           ? "Post rejected."
-          : "Could not publish right now.",
+          : e instanceof Error && e.message.includes("429")
+            ? "Too many posts. Try again shortly."
+            : "Could not publish right now.",
       ),
   });
 
