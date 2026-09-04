@@ -24,6 +24,18 @@ interface RevealedFile {
 const prettySize = (n: number) =>
   n < 1024 ? `${n} B` : n < 1024 * 1024 ? `${(n / 1024).toFixed(0)} KB` : `${(n / 1048576).toFixed(1)} MB`;
 
+// Faint, tiled watermark over the revealed payload. This can't stop a screenshot — no
+// website can — but it stamps every view with a distinct tag, so a leaked copy can be
+// traced back to the read that produced it. Built from the burn token: unique per claim,
+// never sent anywhere, never logged.
+function watermarkBackground(tag: string): string {
+  const svg =
+    `<svg xmlns='http://www.w3.org/2000/svg' width='260' height='130'>` +
+    `<text x='0' y='70' transform='rotate(-24 130 65)' font-family='monospace' ` +
+    `font-size='12' fill='rgba(232,103,46,0.14)'>${tag}</text></svg>`;
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
+
 export default function ViewSecret() {
   const { id = "" } = useParams();
   const [passphrase, setPassphrase] = useState("");
@@ -227,57 +239,68 @@ export default function ViewSecret() {
                 <p className="text-sm text-[#D4A9A9]">This secret has been destroyed.</p>
               </div>
             )}
-            {plain.length > 0 && (
-              <pre
-                className="border border-[#E8672E]/25 bg-[#0E0E10] p-6 font-mono text-sm leading-relaxed whitespace-pre-wrap text-[#ECE7DC]"
-                data-testid="decrypted-secret-text"
-              >
-                {plain}
-              </pre>
-            )}
+            {(plain.length > 0 || revealed.length > 0) && (
+              <div className="relative">
+                <div
+                  className="pointer-events-none absolute inset-0 z-10 select-none"
+                  style={{ backgroundImage: watermarkBackground((burnToken ?? id).slice(0, 12)) }}
+                  data-testid="secret-watermark"
+                  aria-hidden="true"
+                />
 
-            {revealed.length > 0 && (
-              <div className="mt-5" data-testid="decrypted-attachments">
-                <p className="flex items-center gap-2 font-mono text-[11px] tracking-[0.2em] text-[#6B6F76]">
-                  <Paperclip className="size-3.5 text-[#E8672E]" /> DECRYPTED FILES
-                </p>
-                <ul className="mt-3 space-y-2">
-                  {revealed.map((f) => (
-                    <li
-                      key={f.id}
-                      className="flex items-center justify-between gap-3 border border-white/10 bg-[#17171A] px-4 py-3"
-                    >
-                      <span className="min-w-0">
-                        <span className="block truncate font-mono text-xs text-[#D4CFC6]">
-                          {f.name}
-                        </span>
-                        <span className="font-mono text-[11px] text-[#3D4048]">
-                          {prettySize(f.size)}
-                        </span>
-                      </span>
-                      <a
-                        href={f.url}
-                        download={f.name}
-                        data-testid={`download-attachment-${f.id}`}
-                        className="flex shrink-0 items-center gap-2 border border-[#E8672E]/40 px-3 py-1.5 font-mono text-[11px] text-[#E8672E] transition-colors duration-200 hover:bg-[#E8672E]/10"
-                      >
-                        <Download className="size-3.5" /> Download
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-                {revealed.some((f) => f.type.startsWith("image/")) && (
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2" data-testid="image-previews">
-                    {revealed
-                      .filter((f) => f.type.startsWith("image/"))
-                      .map((f) => (
-                        <img
-                          key={`img-${f.id}`}
-                          src={f.url}
-                          alt={f.name}
-                          className="w-full border border-white/10"
-                        />
+                {plain.length > 0 && (
+                  <pre
+                    className="border border-[#E8672E]/25 bg-[#0E0E10] p-6 font-mono text-sm leading-relaxed whitespace-pre-wrap text-[#ECE7DC]"
+                    data-testid="decrypted-secret-text"
+                  >
+                    {plain}
+                  </pre>
+                )}
+
+                {revealed.length > 0 && (
+                  <div className="mt-5" data-testid="decrypted-attachments">
+                    <p className="flex items-center gap-2 font-mono text-[11px] tracking-[0.2em] text-[#6B6F76]">
+                      <Paperclip className="size-3.5 text-[#E8672E]" /> DECRYPTED FILES
+                    </p>
+                    <ul className="mt-3 space-y-2">
+                      {revealed.map((f) => (
+                        <li
+                          key={f.id}
+                          className="flex items-center justify-between gap-3 border border-white/10 bg-[#17171A] px-4 py-3"
+                        >
+                          <span className="min-w-0">
+                            <span className="block truncate font-mono text-xs text-[#D4CFC6]">
+                              {f.name}
+                            </span>
+                            <span className="font-mono text-[11px] text-[#3D4048]">
+                              {prettySize(f.size)}
+                            </span>
+                          </span>
+                          <a
+                            href={f.url}
+                            download={f.name}
+                            data-testid={`download-attachment-${f.id}`}
+                            className="flex shrink-0 items-center gap-2 border border-[#E8672E]/40 px-3 py-1.5 font-mono text-[11px] text-[#E8672E] transition-colors duration-200 hover:bg-[#E8672E]/10"
+                          >
+                            <Download className="size-3.5" /> Download
+                          </a>
+                        </li>
                       ))}
+                    </ul>
+                    {revealed.some((f) => f.type.startsWith("image/")) && (
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2" data-testid="image-previews">
+                        {revealed
+                          .filter((f) => f.type.startsWith("image/"))
+                          .map((f) => (
+                            <img
+                              key={`img-${f.id}`}
+                              src={f.url}
+                              alt={f.name}
+                              className="w-full border border-white/10"
+                            />
+                          ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

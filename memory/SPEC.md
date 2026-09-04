@@ -79,11 +79,15 @@ Note: CSP/security headers are served on backend responses; the Vite dev server 
 - `components/BootSequence.tsx`, mounted in App.tsx: one-time terminal boot log (8 lines, ~1.6s) with scanlines and a blinking cursor. Flag `boot_sequence_seen` in localStorage; skipped entirely under prefers-reduced-motion; dismissible via click, any key, or the SKIP button; auto-dismisses when finished.
 
 ## Terms + abuse reporting
-- `/terms` (Acceptable Use) and `/report` (public report form), linked from the navbar and footer. Contact placeholder `abuse@example.com` in `pages/Terms.tsx` — REPLACE before merging.
+- `/terms` (Acceptable Use) and `/report` (public report form), linked from the navbar and footer. Contact address: `abuse@sumitdwivedi.com`.
 - `POST /api/reports`: no auth, rate-limited 5/10min via lib/rate_limit.py client_hash; strips URL/`#key` down to the bare id; stores {id, target_type, target_id, reason, note, created_at, status, resolved_at}. Never auto-deletes content.
 - TTL index on `reports.resolved_at` (30 days) — pending reports (null) never expire.
-- Admin API (no UI), gated by `X-Admin-Token` vs backend/.env `ADMIN_TOKEN` (blank ⇒ everything 403): GET /api/admin/reports, POST /api/admin/reports/{id}/resolve, DELETE /api/admin/wall/{post_id}, DELETE /api/admin/threads/{thread_id} (cascades replies).
+- Admin API (no UI), gated by `X-Admin-Token` vs Render env var `ADMIN_TOKEN` (blank ⇒ everything 403): GET /api/admin/reports, POST /api/admin/reports/{id}/resolve, DELETE /api/admin/wall/{post_id}, DELETE /api/admin/threads/{thread_id} (cascades replies), DELETE /api/admin/secrets/{secret_id} (removes by id, no decryption needed).
 
 ## Thread search
 - `GET /api/threads?q=` — title-only, case-insensitive, regex-escaped substring match (page/limit unchanged).
 - Threads page has a debounced (200ms) filter box with a clear button; results keep the previous list while refetching, and the empty state names the term when nothing matches.
+
+## Reveal watermark
+- `ViewSecret.tsx`: revealed text/attachments are overlaid with a faint, tiled SVG watermark (an inline `background-image` data URI, `pointer-events-none`) stamped with the first 12 chars of that claim's `burn_token`.
+- Not a screenshot blocker — no website can be one; there is no browser API to prevent screen capture, and Netflix-style DRM only protects a `<video>` element via hardware-backed EME, not arbitrary DOM content. This exists purely for after-the-fact traceability: a leaked screenshot carries a tag unique to the read that produced it.
