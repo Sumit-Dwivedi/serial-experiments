@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 import PageShell from "@/components/PageShell";
 
-const ABUSE_EMAIL = "abuse@example.com"; // TODO: replace with a real address before merging.
+const ABUSE_EMAIL = "abuse@sumitdwivedi.com";
 
 const SECTIONS: { n: string; title: string; body: React.ReactNode }[] = [
   {
